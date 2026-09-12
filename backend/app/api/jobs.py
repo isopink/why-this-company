@@ -10,6 +10,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from ..core.paths import SCRIPTS_DIR, SKILL_DIR, WORK_DIR, ensure_work
+from ..core.solar_angles import generate_angles
 
 router = APIRouter()
 
@@ -93,19 +94,89 @@ async def _run_pipeline(job_id: str, company: str, job_family: str) -> None:
         job["steps"]["judge"] = {"rc": rc}
         job["judge"] = judge
 
-        # 3) render — 30초 (angles 없음 → 1단계까지 + 안내문)
+        # 3) Solar 각도 생성 — render 전에 work/{job_id}/angles.txt 생성
+        #    render 형식 위반 시 최대 2회 재시도, 3회 실패 시 angles 없이 1단계만 렌더
+        #    제10조 검증 대비: 호출 여부·재시도 횟수·결과를 steps["solar"]에 기록
+        angles_path = None
+        solar_retries = 0
+        solar_error = None
+        try:
+            angles_path = generate_angles(job_id, company, job_family)
+        except Exception as e:
+            solar_error = str(e)[:200]
+            job["steps"]["solar"] = {
+                "called": True,
+                "rc": -1,
+                "angles_path": None,
+                "retries": solar_retries,
+                "error": solar_error,
+            }
+            angles_path = None
+
+        # 4) render — 30초
         draft_path = job_dir / "draft.txt"
-        rc, out, err = await _run(
-            [sys.executable, str(SCRIPTS_DIR / "render.py"),
-             str(dart_path), str(judge_path), "--job", job_family,
-             "--out", str(draft_path)],
-            cwd, 30.0,
-        )
+        render_attempts = 0
+        max_render_attempts = 3
+        render_with_angles = angles_path is not None
+        last_render_err = None
+
+        while render_attempts < max_render_attempts:
+            render_attempts += 1
+            cmd = [
+                sys.executable, str(SCRIPTS_DIR / "render.py"),
+                str(dart_path), str(judge_path),
+                "--job", job_family,
+                "--out", str(draft_path),
+            ]
+            if render_with_angles and angles_path:
+                cmd += ["--angles", str(angles_path)]
+
+            rc, out, err = await _run(cmd, cwd, 30.0)
+            if rc == 0:
+                break  # 성공
+            last_render_err = err.strip()
+            # render 형식 위반(중단)이면 angles 재시도 또는 angles 포기
+            if "render 중단" in last_render_err and render_with_angles:
+                if render_attempts < max_render_attempts:
+                    # 각도 재시도: Solar 다시 호출
+                    solar_retries += 1
+                    try:
+                        angles_path = generate_angles(job_id, company, job_family)
+                        if not angles_path:
+                            render_with_angles = False
+                            break
+                        continue  # 재시도
+                    except Exception as se:
+                        # Solar 재호출 실패 → angles 없이 진행
+                        render_with_angles = False
+                        last_render_err = f"angles 재생성 실패: {se}"
+                        break
+                else:
+                    # 3회 실패 → angles 없이 render
+                    render_with_angles = False
+                    break
+            else:
+                # 형식 위반이 아닌 render 오류 → 바로 중단
+                break
+
         if rc != 0:
-            raise RuntimeError(f"render 오류(rc={rc}): {err.strip()}")
+            if render_with_angles:
+                # 마지막 시도로 angles 없이 render 시도
+                rc, out, err = await _run(
+                    [sys.executable, str(SCRIPTS_DIR / "render.py"),
+                     str(dart_path), str(judge_path), "--job", job_family,
+                     "--out", str(draft_path)],
+                    cwd, 30.0,
+                )
+                if rc == 0:
+                    job["steps"]["render"] = {"rc": rc, "note": "angles 형식 위반으로 angles 없이 렌더"}
+                else:
+                    raise RuntimeError(f"render 오류(rc={rc}): {err.strip()}")
+            else:
+                raise RuntimeError(f"render 오류(rc={rc}): {last_render_err or err.strip()}")
         if not draft_path.exists():
             raise RuntimeError("render가 출력 파일을 쓰지 않았습니다")
-        job["steps"]["render"] = {"rc": rc}
+        job["steps"]["render"] = {"rc": rc, "attempts": render_attempts}
         job["draft"] = draft_path.read_text(encoding="utf-8")
 
         # 4) verify — 30초
@@ -118,6 +189,26 @@ async def _run_pipeline(job_id: str, company: str, job_family: str) -> None:
             raise RuntimeError(f"verify 오류(rc={rc}): {err.strip()}")
         verify = json.loads(out)
         job["steps"]["verify"] = {"rc": rc, "result": verify}
+
+        # solar 단계 최종 기록 — 제10조 검증 대비: 호출 여부·재시도 횟수·결과 명시
+        if angles_path is not None:
+            job["steps"]["solar"] = {
+                "called": True,
+                "rc": 0,
+                "angles_path": str(angles_path.relative_to(WORK_DIR)),
+                "retries": solar_retries,
+                "error": None,
+            }
+        elif solar_error is None and angles_path is None:
+            # 판정된 문제가 0건 → angles 없이 render 진행 (정상 케이스)
+            job["steps"]["solar"] = {
+                "called": False,
+                "rc": 0,
+                "angles_path": None,
+                "retries": 0,
+                "error": None,
+                "reason": "판정된 주목할 사항이 0건 — angles 없이 1단계만 렌더",
+            }
 
         job["status"] = "done"
         job["result"] = {
