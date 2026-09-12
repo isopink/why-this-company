@@ -1,0 +1,6 @@
+.env
+jobs/
+.cache/
+*.zip
+*.pdf
+reports/
