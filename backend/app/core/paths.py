@@ -11,7 +11,7 @@ from pathlib import Path
 # 이 파일이 속한 app/ 의 부모를 기준으로 프로젝트 루트를 잡는다.
 _APP_DIR = Path(__file__).resolve().parent          # backend/app/
 _BACKEND_DIR = _APP_DIR.parent                      # backend/
-ROOT = _BACKEND_DIR.parent                           # 레포 루트
+ROOT = _BACKEND_DIR.parent.parent                           # 레포 루트
 
 # 예선 스킬 폴더 — 복사하지 않고 그대로 호출한다.
 SKILL_DIR = ROOT / "why-this-company"
