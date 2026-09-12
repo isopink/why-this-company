@@ -4,3 +4,4 @@ jobs/
 *.zip
 *.pdf
 reports/
+upload_payload.json
