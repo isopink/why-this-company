@@ -8,3 +8,7 @@ work/
 reports/
 upload_payload.json
 .venv/
+__pycache__/
+*.pyc
+__pycache__/
+*.pyc

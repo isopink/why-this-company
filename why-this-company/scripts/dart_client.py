@@ -34,7 +34,26 @@ CACHE_DIR.mkdir(exist_ok=True)
 def _api_key():
     key = os.environ.get("OPEN_DART_API_KEY")
     if not key:
-        raise RuntimeError("OPEN_DART_API_KEY 환경변수가 없습니다. 타임리 설정 > 환경변수 확인.")
+        # env.py와 동일한 로직으로 .env 보충
+        # 스크립트 위치와는 달리 dart_client.py 기준 레포 루트는 parent.parent
+        env_path = SCRIPT_DIR.parent.parent / ".env"
+        if env_path.is_file():
+            for line in env_path.read_text(encoding="utf-8").splitlines():
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                if "=" not in line:
+                    continue
+                k, _, v = line.partition("=")
+                k = k.strip()
+                v = v.strip().strip('"').strip("'")
+                if k == "OPEN_DART_API_KEY" and v:
+                    key = v
+                    break
+        if not key:
+            raise RuntimeError(
+                "OPEN_DART_API_KEY 환경변수가 없습니다. 타임리 설정 > 환경변수 확인."
+            )
     return key
 
 

@@ -220,8 +220,12 @@ def build(dart, judge, kipris, job, angles, fname):
     L.append("## 3단계 — 사항별 \"지원동기로 쓴다면\" 방향성")
     L.append("")
     if probs and not angles:
-        sys.exit("render 중단: 판정된 주목 사항이 있는데 --angles 가 없습니다. work/angles.txt 를 쓰고 다시 실행하세요.")
-    if probs and angles:
+        idx2 = L.index("## 2단계 — 지원 직무와 닿는 지점") + 1
+        L[idx2:idx2] = wrap("Solar 2단계(직무와 닿는 지점)는 work/angles.txt 의 '## 2단계' 절이 필요합니다.")
+        L += wrap("Solar 3단계(사항별 방향성)는 work/angles.txt 의 '## 3단계' 절이 필요합니다.")
+        L.append("")
+        L += wrap("work/angles.txt 를 작성해 --angles 와 함께 다시 실행하면 2·3단계가 채워집니다.")
+    elif probs and angles:
         a2, a3 = split_angles(angles)
         if not a3.strip():
             sys.exit("render 중단: work/angles.txt 에 '## 3단계' 절이 없거나 비어 있습니다. "
