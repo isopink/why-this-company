@@ -364,7 +364,7 @@
 <!-- 6) 스킬 매핑 -->
 <section>
   <div class="sec-head"><span class="num">6</span><h2>스킬 매핑</h2></div>
-  <p>기능별로 사용할 예선 스킬(1개 이상 필수, A-0 안전 점검 통과한 것만). 각 스킬이 쓰는 공개 데이터 출처(API 주소)를 적는다. 웹에서는 /api 서버리스 함수가 그 데이터 출처를 직접 호출하며, 스킬 자체를 배포하거나 서비스에서 호출하지 않는다.</p>
+  <p>기능별로 사용할 예선 스킬(1개 이상 필수, A-0 안전 점검 통과한 것만). 각 스킬이 쓰는 공개 데이터 출처(API 주소)를 적는다. 웹에서는 /api 서버(상시 실행)가 그 데이터 출처를 직접 호출하며, 예선 스킬 스크립트를 수정 없이 배포해 판정·렌더·검증 엔진으로 쓴다.</p>
 
   <table>
     <tr><th>기능</th><th>사용 스킬</th><th>안전 점검</th><th>공개 데이터 출처 (API 주소)</th></tr>
@@ -375,7 +375,7 @@
       <td>
         <div class="kv"><span class="k">OpenDART</span> <span class="v"><code>https://opendart.fss.or.kr/api</code></span></div>
         <div class="kv" style="margin-top:4px;"><span class="k">KIPRIS (선택)</span> <span class="v"><code>http://plus.kipris.or.kr/kipo-api/kipi/patUtiModInfoSearchSevice/getAdvancedSearch</code></span></div>
-        <div style="font-size:11.5px;color:var(--muted);margin-top:6px;">/api 서버리스 함수가 직접 호출. 스킬 자체를 배포하거나 서비스에서 호출하지 않음.</div>
+        <div style="font-size:11.5px;color:var(--muted);margin-top:6px;">/api 서버(상시 실행)가 직접 호출. 예선 스킬 스크립트를 수정 없이 배포해 판정·렌더·검증 엔진으로 쓴다.</div>
       </td>
     </tr>
     <tr>
@@ -387,6 +387,48 @@
         DART 고유번호 파일 (런타임 다운로드 안 함 — 반복 다운로드로 연결 차단 경험)<br>
         매핑 테이블 (reference.md) — 질문의 유일한 지식 원천
       </td>
+    </tr>
+  </table>
+
+  <h3>변경·고도화 내역 (운영진 기재 요구)</h3>
+  <p>예선 스킬은 그대로 호출이 원칙이지만 서비스화에 필요한 수정·확장은 허용되며, 변경·고도화 내역은 아래 표에 기재한다.</p>
+  <table>
+    <tr><th>스크립트/요소</th><th>변경 내용</th><th>근거·비고</th><th>우선순위</th></tr>
+    <tr>
+      <td>render.py</td>
+      <td>중단 조건 완화 (1건) — 판정된 사항이 있고 <code>--angles</code>가 없을 때 <code>sys.exit</code>로 중단하던 것을, 생성 실패 시에도 1단계 주목할 사항과 [출처]를 출력하도록 완화. 판정 로직·표현 규칙·검증 로직은 건드리지 않음.</td>
+      <td>서비스에서는 Solar 2·3단계 생성 실패 시에도 1단계 주목할 사항과 출처를 보여줘야 함. 현재 코드는 <code>--angles</code> 없으면 1단계조차 못 그림.</td>
+      <td><span class="pill p0">P0</span></td>
+    </tr>
+    <tr>
+      <td>3단계 출력 형태</td>
+      <td>방향성 명사구에서 질문형으로 전환. 매핑 테이블 42칸 골격은 그대로 두고 Solar 프롬프트만 변경. render.py의 형식 검사(95자 제한, 1인칭 희망 표현 금지, 매핑 좌표 일치)는 질문형도 통과하므로 코드 수정 없음.</td>
+      <td>자소서 AI가 써준 문장은 근거가 없어 "왜 그렇게 보셨어요"에 막힘. 문장 대신 근거 붙은 질문을 주고 사용자가 직접 고르도록 설계.</td>
+      <td><span class="pill p0">P0</span></td>
+    </tr>
+    <tr>
+      <td>dart_client.py</td>
+      <td>변경 없음</td>
+      <td>예선 스크립트 그대로 호출.</td>
+      <td><span class="pill muted">-</span></td>
+    </tr>
+    <tr>
+      <td>kipris_client.py</td>
+      <td>변경 없음</td>
+      <td>예선 스크립트 그대로 호출. 선택, 실패해도 진행.</td>
+      <td><span class="pill muted">-</span></td>
+    </tr>
+    <tr>
+      <td>judge.py</td>
+      <td>변경 없음</td>
+      <td>룰 6종 판정 + 근거 태깅 그대로.</td>
+      <td><span class="pill muted">-</span></td>
+    </tr>
+    <tr>
+      <td>verify.py</td>
+      <td>변경 없음</td>
+      <td>리포트 수치 ↔ 원본 재대조 그대로.</td>
+      <td><span class="pill muted">-</span></td>
     </tr>
   </table>
 
@@ -459,7 +501,7 @@
 
   <h3>8-1. 배포 연결 (값 취급 없음)</h3>
   <ul>
-    <li>Vercel에 정적 프론트(index.html) + 서버리스 /api 함수로 배포.</li>
+    <li>배포 방식: Vercel 함수 단위 서버리스가 아닌 상시 실행 호스팅. 규정 제8조 6항은 배포 플랫폼을 제한하지 않으며, Vercel은 가이드 기준일 뿐입니다. 예선 스크립트(judge·render·verify)를 서버에서 그대로 실행 — 파이썬 서브프로세스 실행, 작업 폴더 쓰기, 60초 이상 실행이 필요하기 때문입니다.</li>
     <li>프론트는 같은 도메인 /api만 fetch. /api는 PRD 6번에 적힌 공개 데이터 출처(OpenDART, 선택 KIPRIS)만 호출.</li>
     <li>클라이언트(index.html)에는 키·프록시 주소 0개.</li>
   </ul>
@@ -517,7 +559,7 @@
     <li>출처·기준 시각 표기: 모든 수치는 출처(사업보고서 연결 기준, rcpNo 링크) 표기. KIPRIS 표기 시 "분석 판단 미사용" 명시.</li>
     <li>없는 값은 <strong>'확인 불가'</strong>로 표기. 추정 금지.</li>
     <li>키·프록시 주소는 서버(/api)에만. 클라이언트 소스·응답 JSON에 0개.</li>
-    <li>최소 권한: /api는 PRD 6번 공개 데이터 출처만 호출, 그 외 외부 주소로는 요청하지 않음. 스킬 코드·스킬 문서를 서비스에 포함하지 않음.</li>
+    <li>최소 권한: /api는 PRD 6번 공개 데이터 출처만 호출, 그 외 외부 주소로는 요청하지 않음. 예선 스킬의 스크립트를 호출해 서비스의 판정·렌더·검증 엔진으로 쓰고, 매핑 테이블과 판정 기준을 유일한 지식 원천으로 한다.</li>
     <li>업로드 자료에서 나온 내용은 공시 수치와 섞지 않고, 리포트에 수치로 넣지 않음 (텍스트만).</li>
     <li>수치는 조+억 함께, 반올림 금지, 연결/별도 기준 항상 표기. 내부 용어(판정 불가·파싱·룰 등) 화면에 금지.</li>
     <li>판정 결과를 부르는 말은 "주목할 사항". 번호는 "주목 N.".</li>
@@ -581,7 +623,6 @@
     <li>최신 뉴스·CES·IR 동향 등 공시 밖 정보를 판정에 사용 (v2로 분리됨 — 현재는 v1 범위)</li>
     <li>워크넷 채용공고 자격요건 자동 반영, 수시공시 기반 "최근 동향" 섹션, web-research로 최근 12개월 1차 출처 확인 (<strong>v2</strong> — 본선 스킬 문서 명시, 현재는 제외)</li>
     <li>비상장사·DART 미등록 기업의 공시 기반 방향성 (공시 없음 → 정직 종료)</li>
-    <li>기업이 6계열 밖(HR·디자인 등) — 공시 기반 방향성 도출 어려움, 문제 목록(1단계)까지만 제공</li>
     <li>업로드 자료에서 수치 추출·verify 대조 (홍보 자료라 기준 달라 불가능. 텍스트만 사용)</li>
     <li>서버 사용자 데이터 저장 (localStorage만, 서버는 작업 ID + 캐시만)</li>
     <li>다른 예선 스킬 호출 — seoul-parking-info 등은 접점 없어 호출하지 않음. 결선 서비스는 why-this-company 하나만 사용</li>
