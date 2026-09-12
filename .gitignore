@@ -4,4 +4,7 @@ jobs/
 *.zip
 *.pdf
 reports/
+work/
+reports/
 upload_payload.json
+.venv/
