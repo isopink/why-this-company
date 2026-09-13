@@ -579,8 +579,30 @@ function runLoad(){
   $('#goQ').disabled=true;
   $('#loadLabel').textContent='선택한 직무의 예시 질문을 준비하고 있어요';
   $('#load i').style.width='20%';
-  if(!pickedJobId){console.warn('runLoad: pickedJobId is null');return}
+  if(!pickedJobId){
+    console.warn('runLoad: pickedJobId is null, waiting up to 15s');
+    const deadline=Date.now()+15000;
+    (async()=>{
+      for(;;){
+        if(!loadPolling)return;
+        if(pickedJobId)break;
+        if(Date.now()>deadline){
+          $('#loadLabel').textContent='분석을 시작하지 못했습니다';
+          $('#load i').style.width='100%';
+          loadPolling=false;
+          return;
+        }
+        await new Promise(r=>setTimeout(r,1000));
+      }
+      runPoll();
+    })();
+    return;
+  }
+  runPoll();
+}
+function runPoll(){
   loadPolling=true;
+  let barWidth=20;
   (async()=>{
     for(;;){
       if(!loadPolling)return;
@@ -597,6 +619,20 @@ function runLoad(){
           loadPolling=false;
           return;
         }
+        if(d.status==='error'){
+          $('#loadLabel').textContent=d.reason||'질문을 만들지 못했습니다';
+          $('#load i').style.width='100%';
+          loadPolling=false;
+          return;
+        }
+        const s=d.steps||{};
+        let label='선택한 직무의 예시 질문을 준비하고 있어요';
+        if(s.dart)label='공시를 읽는 중';
+        else if(s.judge)label='주목할 사항을 찾는 중';
+        else if(s.render)label='질문을 만드는 중';
+        $('#loadLabel').textContent=label;
+        barWidth=Math.min(95,barWidth+15);
+        $('#load i').style.width=barWidth+'%';
       }catch(err){console.error('poll /api/jobs error',err)}
       await new Promise(r2=>setTimeout(r2,2000));
     }
