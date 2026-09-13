@@ -659,20 +659,28 @@ function buildStepsFromResult(){
   const out=[];
   let di=0;
   for(const item of qs){
-    const bullets=String(item.text||'').replace(/\r\n/g,'\n').replace(/\r/g,'\n')
-      .split('\n-').slice(1).map(b=>b.trim()).filter(Boolean);
+    const bullets=String(item.text||'').replace(/
+/g,'
+').replace(//g,'
+')
+      .split('
+-').slice(1).map(b=>b.trim()).filter(Boolean);
     for(const bullet of bullets){
+      let q=bullet,mappingCell=null;
+      const mtIdx=bullet.indexOf('(매핑 테이블:');
+      if(mtIdx>=0){q=bullet.substring(0,mtIdx).trim();mappingCell=bullet.substring(mtIdx)}
       out.push({
         kind:'q',
         id:'d'+di,
         tag:item.source_title||'',
-        q:bullet,
+        q:q,
         follow:'그 판단을 확인하려면 어떤 공시 자료가 필요할까요?',
         ev:[
           ['자료 상태','공시 미연결 · 조건을 가정한 질문 예시'],
           ['수치 · 기준','확인 불가 — 선택 회사의 공시 조회 전'],
           ['원문 위치','보고서 접수번호 연결 전 · <a href="https://dart.fss.or.kr/" target="_blank" rel="noopener noreferrer">DART에서 회사명으로 검색 ↗</a>'],
-          ['매핑 좌표',escapeHTML((item.source_title||'').slice(0,40)+' × '+picked.job.name.replace('\n',' '))+' (화면 구성 예시)']
+          ['매핑 좌표',mappingCell?escapeHTML(mappingCell):escapeHTML((item.source_title||'').slice(0,40)+' × '+picked.job.name.replace('
+',' '))+' (화면 구성 예시)']
         ]
       });
       di++;
