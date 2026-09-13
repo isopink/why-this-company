@@ -219,7 +219,16 @@ def generate_angles(job_id: str, company: str, job: str) -> Path:
 
     # angles.txt 작성
     angles_path = job_dir / "angles.txt"
-    angles_path.write_text(content, encoding="utf-8")
+    try:
+        angles_path.write_text(content, encoding="utf-8")
+    except Exception as wte:
+        import sys as _sys
+        _sys.stderr.write(
+            f"ERROR angles_path.write_text 실패: path={angles_path}, "
+            f"exists={angles_path.exists()}, parent_exists={angles_path.parent.exists()}, "
+            f"error={wte!r}, content_len={len(content)}\n"
+        )
+        raise RuntimeError(f"angles.txt 작성 실패({wte})") from wte
     print(f"angles.txt 작성 완료: {angles_path}", file=sys.stderr)
     return angles_path
 

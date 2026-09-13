@@ -4,6 +4,7 @@ import asyncio
 import json
 import sys
 import uuid
+import re
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
@@ -26,6 +27,184 @@ class JobRequest(BaseModel):
 
 class JobIdResponse(BaseModel):
     job_id: str
+
+
+def _collapse_wrap_lines(text: str) -> str:
+    """render.py의 textwrap.wrap이 넣은 물리적 개행을 JSON에 담기 좋은 형태로 만든다.
+
+    \n 뒤 공백이 이어지는 패턴은 공백 하나로, 남은 \n은 공백으로 바꾸고 연속 공백은
+    하나로 줄인다. 단, '-'로 시작하는 불릿 줄 앞의 개행만 남긴다."""
+    if not text:
+        return text
+    lines = text.split("\n")
+    out = [lines[0]]
+    for i in range(1, len(lines)):
+        curr = lines[i]
+        if not curr.strip():
+            continue
+        if curr.lstrip().startswith("- "):
+            out.append("\n" + curr)
+        else:
+            out.append(" " + curr.strip())
+    return "".join(out).strip()
+
+
+def _parse_draft_sections(draft: str) -> dict[str, str]:
+    """draft.txt를 고정 머리글 기준으로 자른다. render 출력 형식이 바뀌어도
+    머리글 문자열이 같으면 깨지지 않는다."""
+    markers = [
+        "## 1단계 — 주목할 사항",
+        "[잘하고 있는 것]",
+        "[그럼에도 주목할 사항]",
+        "[확인 결과 특이사항 없음]",
+        "[자동으로 읽지 못한 항목]",
+        "## 2단계 — 지원 직무와 닿는 지점",
+        '## 3단계 — 사항별 "지원동기로 쓴다면" 방향성',
+        "[출처]",
+        "[판정 기준]",
+        "[더 볼 것]",
+        "[저장]",
+    ]
+    sections: dict[str, str] = {}
+    text = draft
+    for i, m in enumerate(markers):
+        idx = text.find(m)
+        if idx == -1:
+            sections[m] = ""
+            continue
+        start = idx + len(m)
+        tail = text[start:]
+        next_start = len(tail)
+        for m2 in markers[i + 1 :]:
+            j = tail.find(m2)
+            if j != -1:
+                next_start = j
+                break
+        sections[m] = tail[:next_start].strip()
+        text = tail[next_start:]
+    return sections
+
+
+def _parse_source_positions(block: str) -> dict[str, str]:
+    """[출처] 블록에서 'N번: ...' 형태의 항목 위치를 뽑는다."""
+    out: dict[str, str] = {}
+    for line in block.splitlines():
+        m = re.match(r"(\d+)번:\s*(.+)", line.strip())
+        if m:
+            out[m.group(1)] = m.group(2).strip()
+    return out
+
+
+def _extract_problems(sections: dict[str, str], dart: dict, source_positions: dict[str, str]) -> list[dict]:
+    """[그럼에도 주목할 사항] 블록에서 주목 N. 항목을 뽑아 problems 배열로 만든다."""
+    block = sections.get("[그럼에도 주목할 사항]", "")
+    if not block:
+        return []
+    lines = block.splitlines()
+    problems: list[dict] = []
+    current: dict | None = None
+    for line in lines:
+        stripped = line.lstrip()
+        if stripped.startswith("주목") and "." in stripped[:8]:
+            if current is not None:
+                problems.append(_finalize_problem(current, dart, source_positions))
+            current = {"title": stripped, "body": []}
+        elif current is not None:
+            current["body"].append(line)
+    if current is not None:
+        problems.append(_finalize_problem(current, dart, source_positions))
+    return problems
+
+
+def _finalize_problem(problem: dict, dart: dict, source_positions: dict[str, str]) -> dict:
+    body = "\n".join(problem["body"])
+    collapsed = _collapse_wrap_lines(body)
+    m = re.search(r"\(판정:[^)]*\)", body)
+    basis = m.group(0) if m else ""
+    dart_url = dart.get("dart_url") or ""
+    # 원문 위치: [출처] 블록에서 뽑은 항목 위치
+    title_no = re.match(r"주목\s+(\d+)\.", problem["title"])
+    sp = source_positions.get(title_no.group(1), "") if title_no else ""
+    return {
+        "title": problem["title"],
+        "value": collapsed,
+        "basis": basis,
+        "source": dart_url,
+        "source_position": sp,
+        "mapping": [],
+    }
+
+
+def _extract_questions(sections: dict[str, str]) -> list[dict]:
+    """3단계 블록의 질문형 항목을 뽑아 questions 배열로 만든다."""
+    block = sections.get('## 3단계 — 사항별 "지원동기로 쓴다면" 방향성', "")
+    if not block:
+        return []
+    lines = block.splitlines()
+    questions: list[dict] = []
+    current_title: str | None = None
+    current_q: list[str] = []
+    title_re = re.compile(r"^주목\s+\d+\.")
+    for line in lines:
+        stripped = line.lstrip()
+        if title_re.match(stripped):
+            if current_title is not None and current_q:
+                questions.append(_finalize_question(current_title, current_q))
+            current_title = stripped
+            current_q = []
+        elif stripped.startswith("- ") or stripped.startswith("  - "):
+            current_q.append(stripped)
+        else:
+            if stripped and not stripped.startswith("구체화") and not stripped.startswith("방향성"):
+                current_q.append(stripped)
+    if current_title is not None and current_q:
+        questions.append(_finalize_question(current_title, current_q))
+    return questions
+
+
+def _finalize_question(title: str, items: list[str]) -> dict:
+    text = "\n".join(items)
+    collapsed = _collapse_wrap_lines(text)
+    mapping = re.findall(r"\(매핑 테이블:\s*\[[^]]*\]\)", collapsed)
+    return {
+        "source_title": title,
+        "text": collapsed,
+        "mapping": mapping,
+    }
+
+
+def _extract_risk(dart: dict, max_len: int = 900) -> str:
+    """dart.json 위험 섹션(raw_head)에서 회사가 직접 밝힌 위험요소를 원문 발췌한다."""
+    sections = dart.get("sections", {})
+    risk_section = sections.get("위험", {})
+    raw = risk_section.get("raw_head", "")
+    if not raw:
+        return ""
+    paragraphs = [p.strip() for p in raw.split("\n\n") if p.strip()]
+    excerpt = paragraphs[0] if paragraphs else raw
+    if len(excerpt) > max_len:
+        excerpt = excerpt[:max_len].rsplit(" ", 1)[0] + "…"
+    return excerpt
+
+
+def _build_common_questions(company: str, job: str, problems_count: int) -> list[dict]:
+    return [
+        {
+            "id": "common_1",
+            "question": (
+                f"{company} {job} 직무의 지원동기 방향성 리포트에서 "
+                f"주목할 사항이 {problems_count}건 확인되었습니다. "
+                f"이 중 지원 직무와 연결되는 사항은 몇 건이며, 각 사항의 핵심 쟁점은 무엇인가?"
+            ),
+        },
+        {
+            "id": "common_2",
+            "question": (
+                f"{company} {job} 직무의 지원동기 방향성 리포트에서 "
+                f"각 주목할 사항별로 어떤 질문을 던져야 지원동기로 연결할 수 있는가?"
+            ),
+        },
+    ]
 
 
 async def _run(cmd: list[str], cwd: Path, timeout: float) -> tuple[int, str, str]:
@@ -223,10 +402,38 @@ async def _run_pipeline(job_id: str, company: str, job_family: str) -> None:
                 "reason": "판정된 주목할 사항이 0건 — angles 없이 1단계만 렌더",
             }
 
+        dart = job.get("dart", {})
+        judge = job.get("judge", {})
+        draft = job.get("draft", "")
+        sections = _parse_draft_sections(draft) if draft else {}
+        source_positions = _parse_source_positions(sections.get("[출처]", ""))
+        problems = _extract_problems(sections, dart, source_positions)
+        for i, p in enumerate(problems):
+            p["source_position"] = source_positions.get(str(i + 1), "")
+        questions = _extract_questions(sections)
+        for q in questions:
+            mt = re.search(r"주목\s+(\d+)\.", q.get("source_title", ""))
+            if mt:
+                idx = int(mt.group(1)) - 1
+                if 0 <= idx < len(problems):
+                    problems[idx]["mapping"] = q.get("mapping", [])
+        summary = {
+            "company": job.get("company", ""),
+            "job": job.get("job", ""),
+            "notable_count": len(problems),
+            "basis_year": dart.get("financials", {}).get("bsns_year"),
+            "fs_basis": dart.get("financials", {}).get("fs_basis"),
+        }
         job["status"] = "done"
         job["result"] = {
             "report_available": True,
-            "note": "angles 없이 1단계까지 생성된 초안입니다. 질문 생성은 Phase 2에서 붙입니다.",
+            "summary": summary,
+            "problems": problems,
+            "questions": questions,
+            "risk": _extract_risk(dart),
+            "common_questions": _build_common_questions(
+                job.get("company", ""), job.get("job", ""), len(problems)
+            ),
         }
 
     except asyncio.TimeoutError as e:
