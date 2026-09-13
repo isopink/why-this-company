@@ -37,7 +37,7 @@
   <section class="screen" id="s3">
     <div class="wrap">
       <p class="pick" id="pickLine"></p>
-      <h2 class="serif">몇 가지 질문을 드리겠습니다</h2>
+      <h2 class="title-role">몇 가지 질문을 드리겠습니다</h2>
       <p class="lead">공시에서 찾은 사실마다 질문을 하나씩 드립니다. 답을 적으면 지원동기 초안이 되고,<br>같은 답이 면접에서 그대로 쓰입니다.</p>
       <ol>
         <li>질문 아래에는 그 질문이 나온 숫자와 원문 위치가 붙어 있습니다.</li>
@@ -380,7 +380,7 @@ function stepHTML(st){
   if(st.kind === "upload"){
     return `
       <p class="tag">먼저 하나만</p>
-      <p class="qbig serif">지속가능경영보고서나 CES 발표 자료가 있으면 올려주세요.</p>
+      <p class="qbig title-role">지속가능경영보고서나 CES 발표 자료가 있으면 올려주세요.</p>
       <p class="why">공시에는 숫자가 있지만 회사가 무엇을 어떻게 운영하는지는 잘 나오지 않습니다. 이 자료들이 그 부분을 채웁니다. 올린 파일은 이 화면에서만 쓰이고 저장하지 않으며, 여기서 나온 내용은 공시 수치와 섞지 않습니다.</p>
       ${upload
         ? `<p class="fname">${upload} — 읽었습니다. 마지막에 질문이 하나 더 붙습니다.<button type="button" data-act="rm">빼기</button></p>`
@@ -400,7 +400,7 @@ function stepHTML(st){
   return `
     <p class="tag">${st.tag}</p>
     ${quote}
-    <p class="qbig serif">${st.q}</p>
+    <p class="qbig title-role">${st.q}</p>
     ${why}
     ${ev}
     <textarea class="ans" placeholder="여기에 답을 적어보세요. 이 답이 지원동기 초안이 됩니다." data-act="ans">${answers[st.id] || ""}</textarea>
@@ -416,7 +416,7 @@ function summaryHTML(){
   const items = steps.filter(s=>s.kind === "q").map(s=>{
     const a = (answers[s.id] || "").trim();
     return `<div class="sumitem">
-      <p class="sq serif">${s.q}</p>
+      <p class="sq title-role">${s.q}</p>
       <p class="sa ${a ? "" : "empty"}">${a ? a.replace(/</g,"&lt;") : "아직 답하지 않음"}</p>
     </div>`;
   }).join("");
@@ -426,7 +426,7 @@ function summaryHTML(){
     ? `<p class="notice">프로토타입입니다. 수치는 삼성바이오로직스 공시 기준이며, 실제 서비스에서는 ${picked.co}의 공시로 채워집니다.</p>` : "";
   return `
     <p class="tag">${done} / ${all} 답함</p>
-    <h2 class="sumhead">여기까지가 쓸 거리입니다</h2>
+    <h2 class="sumhead title-role">여기까지가 쓸 거리입니다</h2>
     <p class="sumlead">문장으로 다듬는 건 본인 몫입니다. 직접 고른 답이어야 면접에서 왜 그렇게 썼는지 설명할 수 있습니다.</p>
     ${notice}
     ${items}

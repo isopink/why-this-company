@@ -581,14 +581,14 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 }
 
 .sumhead {
-  font-family: var(--title-font);
-  font-weight: var(--title-weight);
-  font-size: var(--title-size);
-  line-height: var(--title-line);
-  letter-spacing: var(--title-spacing);
+  font-family: var(--body-font);
+  font-weight: var(--body-weight);
+  font-size: var(--body-size);
+  line-height: var(--body-line);
   word-break: keep-all;
   overflow-wrap: break-word;
   text-align: center;
+  margin-bottom: 14px;
 }
 
 .sumlead {
@@ -606,13 +606,13 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .sumitem { background: var(--paper); padding: 24px 26px; margin-top: 12px; }
 
 .sumitem .sq {
-  font-family: var(--title-font);
-  font-weight: var(--title-weight);
-  font-size: var(--title-size);
-  line-height: var(--title-line);
-  letter-spacing: var(--title-spacing);
+  font-family: var(--body-font);
+  font-weight: var(--body-weight);
+  font-size: var(--body-size);
+  line-height: var(--body-line);
   word-break: keep-all;
   overflow-wrap: break-word;
+  margin-bottom: 12px;
 }
 
 .sumitem .sa {
