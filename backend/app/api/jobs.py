@@ -11,6 +11,7 @@ from pydantic import BaseModel
 
 from ..core.paths import SCRIPTS_DIR, SKILL_DIR, WORK_DIR, ensure_work
 from ..core.solar_angles import generate_angles
+from ..core.env import Env
 
 router = APIRouter()
 
@@ -97,21 +98,33 @@ async def _run_pipeline(job_id: str, company: str, job_family: str) -> None:
         # 3) Solar 각도 생성 — render 전에 work/{job_id}/angles.txt 생성
         #    render 형식 위반 시 최대 2회 재시도, 3회 실패 시 angles 없이 1단계만 렌더
         #    제10조 검증 대비: 호출 여부·재시도 횟수·결과를 steps["solar"]에 기록
-        angles_path = None
+        #    키는 존재 여부만 다루며, 값은 호출 시에도 응답·로그에 남기지 않는다
         solar_retries = 0
         solar_error = None
-        try:
-            angles_path = generate_angles(job_id, company, job_family)
-        except Exception as e:
-            solar_error = str(e)[:200]
+        env = Env()
+        if not env.upstage_available:
+            solar_error = "UPSTAGE_API_KEY 없음 — angles 없이 1단계만 렌더"
             job["steps"]["solar"] = {
-                "called": True,
-                "rc": -1,
+                "called": False,
+                "rc": 0,
                 "angles_path": None,
-                "retries": solar_retries,
+                "retries": 0,
                 "error": solar_error,
             }
             angles_path = None
+        else:
+            try:
+                angles_path = generate_angles(job_id, company, job_family)
+            except Exception as e:
+                solar_error = str(e)[:200]
+                job["steps"]["solar"] = {
+                    "called": True,
+                    "rc": -1,
+                    "angles_path": None,
+                    "retries": solar_retries,
+                    "error": solar_error,
+                }
+                angles_path = None
 
         # 4) render — 30초
         draft_path = job_dir / "draft.txt"

@@ -336,8 +336,8 @@
     </tr>
     <tr>
       <td>4</td>
-      <td>답변 모아보기 + txt 다운로드 + 결과 주소</td>
-      <td>질문 + 내 답이 한 장씩 정리, txt 내려받기, 결과 주소(URL)로 이어서 쓰기. localStorage에 내가 쓴 답·본 리포트 목록 저장(서버 저장 없음).</td>
+      <td>답변 모아보기 + 결과 주소</td>
+      <td>질문 + 내 답이 한 장씩 정리, 결과 페이지에서 화면에 그대로 표시, 결과 주소(URL)로 다시 열어 이어서 쓰기. localStorage에 내가 쓴 답·본 리포트 목록 저장(서버 저장 없음). txt 다운로드 없음.</td>
       <td><span class="pill p0">P0</span></td>
     </tr>
   </table>
@@ -480,9 +480,8 @@
 
   <p>마지막 화면:</p>
   <ul>
-    <li>질문 + 내 답이 한 장씩 정리</li>
-    <li>txt로 내려받기</li>
-    <li>결과 주소(URL) 보여줌 — 저장해 두면 쓰던 답을 이어서 쓸 수 있음</li>
+    <li>질문 + 내 답이 한 장씩 정리 — 결과 페이지에서 화면에 그대로 표시</li>
+    <li>결과 주소(URL) 보여줌 — 저장해 두면 쓰던 답을 이어서 쓸 수 있음 (새로고침/재방문 시 localStorage에서 복원)</li>
   </ul>
 
   <p><strong>표현 규칙:</strong></p>
@@ -599,16 +598,11 @@
     </tr>
     <tr>
       <td>6</td>
-      <td>다운로드 — 답변 모아보기에서 txt 다운로드가 된다.</td>
-      <td><span class="pill p0">P0</span></td>
-    </tr>
-    <tr>
-      <td>7</td>
       <td>키 비노출 — 클라이언트 소스(index.html)와 /api 응답 JSON에 키·프록시 주소가 0개다.</td>
       <td><span class="pill p0">P0</span></td>
     </tr>
     <tr>
-      <td>8</td>
+      <td>7</td>
       <td>/api 외부 주소 일치 — /api가 호출하는 외부 주소 목록이 PRD 6번과 일치한다 (그 외 요청 없음).</td>
       <td><span class="pill p0">P0</span></td>
     </tr>
