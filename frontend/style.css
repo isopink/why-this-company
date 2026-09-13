@@ -402,6 +402,15 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
   margin-bottom: 16px;
 }
 
+.tag.title-role {
+  font-family: var(--title-font);
+  font-weight: var(--title-weight);
+  font-size: var(--title-size);
+  line-height: var(--title-line);
+  letter-spacing: var(--title-spacing);
+  color: var(--ink);
+}
+
 .qbig {
   font-family: var(--title-font);
   font-weight: var(--title-weight);
@@ -503,7 +512,8 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 
 .quote {
   margin-top: 24px;
-  background: var(--paper);
+  background-color: #686664;
+  color: #FFFFFF;
   padding: 26px 28px;
   font-size: 15.5px;
   line-height: 1.9;
@@ -581,10 +591,11 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 }
 
 .sumhead {
-  font-family: var(--body-font);
-  font-weight: var(--body-weight);
-  font-size: var(--body-size);
-  line-height: var(--body-line);
+  font-family: var(--title-font);
+  font-weight: var(--title-weight);
+  font-size: var(--title-size);
+  line-height: var(--title-line);
+  letter-spacing: var(--title-spacing);
   word-break: keep-all;
   overflow-wrap: break-word;
   text-align: center;
