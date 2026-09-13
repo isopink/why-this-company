@@ -522,7 +522,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .quote .src {
   margin-top: 14px;
   font-size: 13px;
-  color: var(--ink-40);
+  color: #FFFFFF;
 }
 .quote .src a {
   color: var(--ink-40);
