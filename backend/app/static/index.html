@@ -374,6 +374,7 @@ const JOBS = [
 
 /* ---------------- state ---------------- */
 let picked = {job:null, co:null};
+let pickedJobId = null;
 const $ = s => document.querySelector(s);
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -561,7 +562,15 @@ function go(id){clearTimeout(loadTimer);document.querySelectorAll('.screen').for
 function pickJob(job){sel=job.id;picked.job=job;$('#mapTitle').textContent=job.name.replace('\n',' ')+'로 만나는 회사';$('#mapSub').textContent='연결된 기업 또는 검색 결과에서 회사를 선택하세요';$('#mapBack').hidden=false;$('#panelTitle').textContent='어느 회사가 궁금한가요?';$('#panelHelp').textContent=job.name.replace('\n',' ')+' · 원 크기는 연결된 직무 계열 수를 나타냅니다.';$('#jobButtons').hidden=true;$('#companySearchWrap').hidden=false;$('#companySearch').value='';applySel();companyList()}
 function resetMap(){sel=null;picked={job:null,co:null};$('#mapTitle').textContent='지원할 직무를 고르세요';$('#mapSub').textContent='나의 직무에서, 회사의 가능성으로';$('#mapBack').hidden=true;$('#panelTitle').textContent='어떤 일에 끌리나요?';$('#panelHelp').textContent='원을 누르거나 아래 직무를 선택하세요.';$('#jobButtons').hidden=false;$('#companySearchWrap').hidden=true;$('#jobButtons').innerHTML=JOBS.map(j=>`<button class="job-choice" data-job="${j.id}">${escapeHTML(j.name.replace('\n',' '))}<span>↗</span></button>`).join('');$('#jobButtons').querySelectorAll('[data-job]').forEach(b=>b.onclick=()=>pickJob(JOBS.find(j=>j.id===b.dataset.job)));clearSel()}
 function companyList(){if(!sel)return;const q=$('#companySearch').value.trim().toLowerCase();const pool=CO.filter(c=>c.jobs.includes(sel)&&(c.name.toLowerCase().includes(q)||(codes[c.name]||'').includes(q)));$('#companyResults').innerHTML=pool.map(c=>`<button class="company-option" data-company="${escapeHTML(c.name)}">${escapeHTML(c.name)} ↗<small>${codes[c.name]} · 연결 직무 ${c.jobs.length}개</small></button>`).join('')||'<p>일치하는 기업이 없습니다. 다른 이름이나 종목코드로 검색해 주세요.</p>';$('#companyResults').querySelectorAll('[data-company]').forEach(b=>b.onclick=()=>pickCo(b.dataset.company))}
-function pickCo(name){if(!picked.job||!picked.job.cos.includes(name))return;picked.co=name;go('s3')}
+function pickCo(name){
+  if(!picked.job||!picked.job.cos.includes(name))return;
+  picked.co=name;
+  fetch('/api/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({company:name,job:picked.job.name.replace('\n',' ')})})
+    .then(r=>r.json())
+    .then(d=>{pickedJobId=d.job_id;console.log('job_id set from /api/jobs:',pickedJobId);})
+    .catch(e=>console.error('POST /api/jobs error',e));
+  go('s3')
+}
 function runLoad(){if(!picked.job||!picked.co){go('s2');return}$('#pickLine').textContent=picked.co+' · '+picked.job.name.replace('\n',' ');$('#goQ').disabled=true;$('#loadLabel').textContent='선택한 직무의 예시 질문을 준비하고 있어요';$('#load i').style.width='20%';loadTimer=setTimeout(()=>{$('#load i').style.width='100%';$('#loadLabel').textContent='질문이 준비됐어요';$('#goQ').disabled=false},reduce?0:450)}
 function buildSteps(){const j=picked.job.name.replace('\n',' '),co=picked.co;steps=[{kind:'upload'}];const prompts=[`${co}의 매출이 특정 시장에 집중되어 있다면, ${j} 직무에서 무엇을 먼저 살펴봐야 할까요?`,`${co}가 소수 공급처에 의존한다면, ${j} 관점에서 어떤 대안을 검토할 수 있을까요?`,`${co}의 특정 사업 비중이 빠르게 커진다면, ${j} 직무에서는 어떤 준비가 필요할까요?`];prompts.forEach((q,i)=>steps.push({kind:'q',id:'d'+i,tag:['주목 1. 매출 구성','주목 2. 공급망 구조','주목 3. 사업 비중 변화'][i],q,follow:['그 판단을 확인하려면 어떤 공시 자료가 필요할까요?','이 상황과 연결되는 나의 경험이나 배운 내용이 있나요?','그 변화에 대응하기 위해 가장 먼저 확인할 지표는 무엇인가요?'][i],ev:[['자료 상태','공시 미연결 · 조건을 가정한 질문 예시'],['수치 · 기준','확인 불가 — 선택 회사의 공시 조회 전'],['원문 위치','보고서 접수번호 연결 전 · <a href="https://dart.fss.or.kr/" target="_blank" rel="noopener noreferrer">DART에서 회사명으로 검색 ↗</a>'],['매핑 좌표',escapeHTML(['편중','의존','급변'][i]+' × '+j)+' (화면 구성 예시)']]}));steps.push({kind:'q',id:'risk',tag:'회사가 직접 밝힌 위험요소',q:`${co}가 공시한 위험요소를 읽었다면, ${j} 직무와의 관련성을 어떻게 설명하시겠어요?`,why:'현재 실제 위험요소 원문은 연결되지 않았습니다. DART에서 원문을 확인한 뒤 답변해 보세요.',follow:'원문의 위치와 내가 이해한 내용을 구분해서 설명할 수 있나요?',ev:[['자료 상태','위험요소 원문 확인 전'],['공시 찾아보기','<a href="https://dart.fss.or.kr/" target="_blank" rel="noopener noreferrer">DART 열기 ↗</a>'] ]});steps.push({kind:'q',id:'c0',tag:'나의 이유',q:`많은 회사 중 왜 ${co}인가요?`,follow:`같은 기준에 맞는 다른 회사도 있을 텐데, 그중 ${co}여야 하는 이유는 무엇인가요?`},{kind:'q',id:'c1',tag:'나의 시작',q:`${co}의 ${j} 직무에 입사하면 가장 먼저 해보고 싶은 일은 무엇인가요?`,follow:'그 일을 하려면 지금 어떤 준비가 더 필요하다고 보나요?'},{kind:'sum'});cur=0;answers={};upload=null;uploadFile=null;docType='sustain'}
 function renderQuestions(){buildSteps();activeId=Date.now().toString(36)+Math.random().toString(36).slice(2,8);$('#qMeta').textContent=picked.co+' · '+picked.job.name.replace('\n',' ');history.replaceState(null,'',location.pathname+location.search+'#report='+activeId);renderStep();storeAnswers()}
