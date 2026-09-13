@@ -187,6 +187,13 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
   padding: 48px 0;
 }
 
+#s3 .wrap {
+  width: 100%;
+  max-width: 660px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
 #s3 .pick { font-size: 14px; color: var(--ink-40); margin-bottom: 18px; }
 #s3 .pick b { color: var(--ink); font-weight: 600; }
 
@@ -196,19 +203,23 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
   font-size: clamp(26px, 5.4vw, 40px);
   line-height: 1.35;
   letter-spacing: -.02em;
+  margin: 0 0 28px;
 }
 
 #s3 .lead {
-  margin-top: 20px;
-  color: var(--ink-60);
-  max-width: 30em;
+  display: block;
+  width: 100%;
+  margin: 0 auto 24px;
+  font-size: 16px;
+  line-height: 1.7;
+  color: #62666D;
   text-align: center;
   word-break: keep-all;
 }
 
 #s3 ol {
-  margin: 22px auto 0;
-  max-width: 30em;
+  margin: 0 auto;
+  width: 100%;
   text-align: left;
   color: var(--ink-60);
   padding-left: 1.1em;
@@ -234,6 +245,12 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
   font-size: 13px;
   color: var(--ink-40);
   height: 1.4em;
+}
+
+@media (max-width: 520px) {
+  #s3 .wrap {
+    padding: 0 20px;
+  }
 }
 
 /* ============================================================
