@@ -620,16 +620,16 @@ function runPoll(){
           return;
         }
         if(d.status==='error'){
-          $('#loadLabel').textContent=d.reason||'질문을 만들지 못했습니다';
+          $('#loadLabel').textContent=d.result?.reason||'질문을 만들지 못했습니다';
           $('#load i').style.width='100%';
           loadPolling=false;
           return;
         }
         const s=d.steps||{};
         let label='선택한 직무의 예시 질문을 준비하고 있어요';
-        if(s.dart)label='공시를 읽는 중';
+        if(s.render)label='질문을 만드는 중';
         else if(s.judge)label='주목할 사항을 찾는 중';
-        else if(s.render)label='질문을 만드는 중';
+        else if(s.dart)label='공시를 읽는 중';
         $('#loadLabel').textContent=label;
         barWidth=Math.min(95,barWidth+15);
         $('#load i').style.width=barWidth+'%';
