@@ -202,7 +202,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
   margin-top: 20px;
   color: var(--ink-60);
   max-width: 30em;
-  text-align: left;
+  text-align: center;
 }
 
 #s3 ol {
