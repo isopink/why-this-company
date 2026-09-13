@@ -18,6 +18,8 @@
 }
 
 /* ---------- screen system ---------- */
+html, body { height: 100%; margin: 0; }
+
 .stage { position: relative; min-height: 100vh; }
 .screen {
   position: absolute; inset: 0;
