@@ -166,8 +166,8 @@ const CO = (()=>{
 function profile(){
   const narrow = window.innerWidth < 760;
   return narrow
-    ? {w:760, h:1020, cx:380, cy:510, jr:150, co1:275, co2:330, fj:19, fc:17}
-    : {w:1000, h:680, cx:500, cy:340, jr:150, co1:245, co2:290, fj:17, fc:15};
+    ? {w:760, h:1020, cx:380, cy:510, jr:150, co1:275, co2:330, fj:9.5, fc:8.5}
+    : {w:1000, h:680, cx:500, cy:340, jr:150, co1:245, co2:290, fj:8.5, fc:7.5};
 }
 
 function drawGraph(){
@@ -398,9 +398,9 @@ function stepHTML(st){
   const why = st.why ? `<p class="why">${st.why}</p>` : "";
   const last = cur === steps.length - 2;
   return `
-    <p class="tag">${st.tag}</p>
+    <p class="tag${st.id === 'risk' ? ' title-role' : ''}">${st.tag}</p>
     ${quote}
-    <p class="qbig title-role">${st.q}</p>
+    ${st.id === 'risk' ? `<p class="why">${st.q}</p>` : `<p class="qbig title-role">${st.q}</p>`}
     ${why}
     ${ev}
     <textarea class="ans" placeholder="여기에 답을 적어보세요. 이 답이 지원동기 초안이 됩니다." data-act="ans">${answers[st.id] || ""}</textarea>
