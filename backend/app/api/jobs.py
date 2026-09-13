@@ -33,7 +33,8 @@ def _collapse_wrap_lines(text: str) -> str:
     """render.py의 textwrap.wrap이 넣은 물리적 개행을 JSON에 담기 좋은 형태로 만든다.
 
     \n 뒤 공백이 이어지는 패턴은 공백 하나로, 남은 \n은 공백으로 바꾸고 연속 공백은
-    하나로 줄인다. 단, '-'로 시작하는 불릿 줄 앞의 개행만 남긴다."""
+    하나로 줄인다. 단, '-'로 시작하는 불릿 줄 앞의 개행만 남긴다.
+    """
     if not text:
         return text
     lines = text.split("\n")
@@ -119,19 +120,21 @@ def _extract_problems(sections: dict[str, str], dart: dict, source_positions: di
 def _finalize_problem(problem: dict, dart: dict, source_positions: dict[str, str]) -> dict:
     body = "\n".join(problem["body"])
     collapsed = _collapse_wrap_lines(body)
-    m = re.search(r"\(판정:[^)]*\)", body)
+    m = re.search(r"\(판정:.*\)", collapsed)
     basis = m.group(0) if m else ""
     dart_url = dart.get("dart_url") or ""
     # 원문 위치: [출처] 블록에서 뽑은 항목 위치
     title_no = re.match(r"주목\s+(\d+)\.", problem["title"])
     sp = source_positions.get(title_no.group(1), "") if title_no else ""
+    mapping = re.findall(r"\(매핑 테이블:\s*\[[^]]*\]\)", collapsed)
+    mapping = list(dict.fromkeys(mapping))
     return {
         "title": problem["title"],
         "value": collapsed,
         "basis": basis,
         "source": dart_url,
         "source_position": sp,
-        "mapping": [],
+        "mapping": mapping,
     }
 
 
@@ -144,6 +147,7 @@ def _extract_questions(sections: dict[str, str]) -> list[dict]:
     questions: list[dict] = []
     current_title: str | None = None
     current_q: list[str] = []
+    skip_until_title: bool = False
     title_re = re.compile(r"^주목\s+\d+\.")
     for line in lines:
         stripped = line.lstrip()
@@ -153,10 +157,14 @@ def _extract_questions(sections: dict[str, str]) -> list[dict]:
             current_title = stripped
             current_q = []
         elif stripped.startswith("- ") or stripped.startswith("  - "):
-            current_q.append(stripped)
+            if not skip_until_title:
+                current_q.append(stripped)
         else:
             if stripped and not stripped.startswith("구체화") and not stripped.startswith("방향성"):
-                current_q.append(stripped)
+                if not skip_until_title:
+                    current_q.append(stripped)
+            else:
+                skip_until_title = True
     if current_title is not None and current_q:
         questions.append(_finalize_question(current_title, current_q))
     return questions
@@ -166,6 +174,7 @@ def _finalize_question(title: str, items: list[str]) -> dict:
     text = "\n".join(items)
     collapsed = _collapse_wrap_lines(text)
     mapping = re.findall(r"\(매핑 테이블:\s*\[[^]]*\]\)", collapsed)
+    mapping = list(dict.fromkeys(mapping))
     return {
         "source_title": title,
         "text": collapsed,
@@ -176,7 +185,8 @@ def _finalize_question(title: str, items: list[str]) -> dict:
 def _extract_risk(dart: dict, max_len: int = 900) -> str:
     """dart.json 위험 섹션(raw_head)에서 회사가 직접 밝힌 위험요소를 원문 발췌한다."""
     sections = dart.get("sections", {})
-    risk_section = sections.get("위험", {})
+    parse = sections.get("parse", {})
+    risk_section = parse.get("위험", {})
     raw = risk_section.get("raw_head", "")
     if not raw:
         return ""
