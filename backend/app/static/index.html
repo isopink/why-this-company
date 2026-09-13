@@ -669,14 +669,7 @@ function buildStepsFromResult(){
   const out=[];
   let di=0;
   for(const item of qs){
-    const bullets=String(item.text||'').replace(/
-
-/g,'
-').replace(/
-/g,'
-')
-      .split('
--').slice(1).map(b=>b.trim()).filter(Boolean);
+    const bullets=String(item.text||'').split('\n-').slice(1).map(b=>b.trim()).filter(Boolean);
     for(const bullet of bullets){
       let q=bullet,mappingCell=null;
       const mtIdx=bullet.indexOf('(매핑 테이블:');
