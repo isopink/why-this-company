@@ -57,7 +57,7 @@
   text-transform: none;
 }
 
-/* 각 줄 가운데 정렬, Why와 this 사이는 정확히 2px */
+/* 각 줄 가운데 정렬, Why와 this 사이 띄어쓰기 */
 .hero-title .hero-title__line {
   display: flex;
   justify-content: center;
@@ -69,9 +69,8 @@
   white-space: nowrap;
 }
 
-/* company? 줄만 살짝 오른쪽으로 */
-.hero-title .hero-title__line:last-child {
-  transform: translateX(18px);
+.hero-title .hero-title__line:first-child mark {
+  margin-left: 0.18em;
 }
 
 /* this 노란색 배경 */
