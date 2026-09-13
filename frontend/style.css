@@ -69,6 +69,11 @@
   white-space: nowrap;
 }
 
+/* company? 줄만 살짝 오른쪽으로 */
+.hero-title .hero-title__line:last-child {
+  transform: translateX(18px);
+}
+
 /* this 노란색 배경 */
 .hero-title mark {
   display: inline-block;
