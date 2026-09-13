@@ -6,6 +6,7 @@ jobs/
 reports/
 work/
 |reports/
+*.bak
 upload_payload.json
 run_phase1_test.py
 run_phase1_test_async.py

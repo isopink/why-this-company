@@ -656,38 +656,51 @@ addEventListener('hashchange',()=>{if(location.hash.startsWith('#report='))resum
 function buildStepsFromResult(){
   const qs=jobResult?.result?.questions;
   if(!qs||!qs.length)return null;
+  const problems=jobResult?.result?.problems||[];
   const out=[];
   let di=0;
   for(const item of qs){
-    const bullets=String(item.text||'').replace(/
-/g,'
-').replace(//g,'
-')
-      .split('
--').slice(1).map(b=>b.trim()).filter(Boolean);
+    const text=String(item.text||'').replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+    const bullets=text.split('\n-').slice(1).map(b=>b.trim()).filter(Boolean);
     for(const bullet of bullets){
       let q=bullet,mappingCell=null;
       const mtIdx=bullet.indexOf('(매핑 테이블:');
       if(mtIdx>=0){q=bullet.substring(0,mtIdx).trim();mappingCell=bullet.substring(mtIdx)}
+      const prob=problems.find(p=>p.title===item.source_title);
+      let ev;
+      if(prob){
+        const val=prob.value!=null?String(prob.value):"";
+        const basis=prob.basis?String(prob.basis):"";
+        const sp=prob.source_position?String(prob.source_position):"";
+        const src=prob.source_url||prob.url||prob.link||prob.source||"";
+        ev=[
+          ["자료 상태","연결됨"],
+          ["수치 · 기준",val?(val+(basis?" · "+basis:"")):"확인 불가"],
+          ["원문 위치",sp?(sp+(src?' · <a href="'+escapeHTML(src)+'" target="_blank" rel="noopener noreferrer">원문 ↗</a>':"")):"보고서 접수번호 연결 전 · <a href=\"https://dart.fss.or.kr/\" target=\"_blank\" rel=\"noopener noreferrer\">DART에서 회사명으로 검색 ↗</a>"],
+          ["매핑 좌표",mappingCell?escapeHTML(mappingCell):escapeHTML((item.source_title||"").slice(0,40)+" × "+picked.job.name.replace('\n',' '))+' (화면 구성 예시)']
+        ];
+      }else{
+        ev=[
+          ["자료 상태","공시 미연결 · 조건을 가정한 질문 예시"],
+          ["수치 · 기준","확인 불가 — 선택 회사의 공시 조회 전"],
+          ["원문 위치","보고서 접수번호 연결 전 · <a href=\"https://dart.fss.or.kr/\" target=\"_blank\" rel=\"noopener noreferrer\">DART에서 회사명으로 검색 ↗</a>"],
+          ["매핑 좌표",mappingCell?escapeHTML(mappingCell):escapeHTML((item.source_title||"").slice(0,40)+" × "+picked.job.name.replace('\n',' '))+' (본문 구성 예시)']
+        ];
+      }
       out.push({
-        kind:'q',
-        id:'d'+di,
-        tag:item.source_title||'',
+        kind:"q",
+        id:"d"+di,
+        tag:item.source_title||"",
         q:q,
-        follow:'그 판단을 확인하려면 어떤 공시 자료가 필요할까요?',
-        ev:[
-          ['자료 상태','공시 미연결 · 조건을 가정한 질문 예시'],
-          ['수치 · 기준','확인 불가 — 선택 회사의 공시 조회 전'],
-          ['원문 위치','보고서 접수번호 연결 전 · <a href="https://dart.fss.or.kr/" target="_blank" rel="noopener noreferrer">DART에서 회사명으로 검색 ↗</a>'],
-          ['매핑 좌표',mappingCell?escapeHTML(mappingCell):escapeHTML((item.source_title||'').slice(0,40)+' × '+picked.job.name.replace('
-',' '))+' (화면 구성 예시)']
-        ]
+        follow:"그 판단을 확인하려면 어떤 공시 자료가 필요할까요?",
+        ev:ev
       });
       di++;
     }
   }
   return out;
 }
+
 
 const _origBuildSteps=buildSteps;buildSteps=function(){_origBuildSteps();const ff=buildStepsFromResult();if(ff&&ff.length){const head=steps[0],tail=steps.filter(s=>s.kind!=='q'||!String(s.id||'').startsWith('d'));steps=[head,...ff,...tail.slice(1)]}};
 (()=>{const c=document.querySelector('#tunnel'),ctx=c.getContext('2d'),hero=document.querySelector('#s1'),btn=document.querySelector('#motion');let w=1,h=1,t=0,last=0,px=0,py=0,tx=0,ty=0,visible=true;const reduced=matchMedia('(prefers-reduced-motion: reduce)');let paused=reduced.matches;function label(){btn.textContent=paused?'▷ 애니메이션 재생':'Ⅱ 애니메이션 멈추기';btn.setAttribute('aria-pressed',String(paused))}label();btn.onclick=()=>{paused=!paused;label()};reduced.addEventListener('change',e=>{paused=e.matches;label()});function resize(){w=hero.clientWidth;h=hero.clientHeight;const d=Math.min(devicePixelRatio||1,2);c.width=w*d;c.height=h*d;ctx.setTransform(d,0,0,d,0,0)}new ResizeObserver(resize).observe(hero);new IntersectionObserver(e=>{visible=e[0].isIntersecting}).observe(hero);hero.addEventListener('pointermove',e=>{tx=(e.clientX/w-.5)*20;ty=(e.clientY/h-.5)*14});hero.addEventListener('pointerleave',()=>{tx=ty=0});function p(x,y,z){const s=.82/(z+.55);return[w/2+px+x*w*.70*s,h*.48+py+y*h*.80*s]}function line(points,fill,alpha){ctx.beginPath();points.forEach((q,i)=>i?ctx.lineTo(...q):ctx.moveTo(...q));ctx.globalAlpha=alpha;if(fill){ctx.closePath();ctx.fillStyle=fill;ctx.fill()}ctx.strokeStyle='#202020';ctx.lineWidth=.85;ctx.stroke();ctx.globalAlpha=1}function draw(now){const dt=Math.min((now-last)/1000,.04)||0;last=now;if(visible&&!document.hidden){if(!paused)t+=dt*.15;px+=( (paused?0:tx)-px)*.035;py+=((paused?0:ty)-py)*.035;ctx.fillStyle='#ffdb5b';ctx.fillRect(0,0,w,h);for(let n=15;n>=0;n--){let z=n*.55-(t%.55)+.1;if(z<.04)continue;const a=Math.max(.035,.34-z*.043);line([p(-1,-1,z),p(1,-1,z),p(1,1,z),p(-1,1,z),p(-1,-1,z)],null,a);for(let j=0;j<4;j++){let q=-1+j*.5;for(const side of [-1,1]){line([p(side,q,z),p(side,q,z+.55)],null,a);line([p(q,side,z),p(q,side,z+.55)],null,a);if((n+j+(side===1?2:0))%5===0){let color=(n+j)%3===0?'#202020':(n+j)%2?'#fff386':'#ffffff';line([p(side,q,z+.04),p(side,q+.5,z+.04),p(side,q+.5,z+.51),p(side,q,z+.51)],color,a*1.9)}if((n+j)%7===0)line([p(q,side,z+.04),p(q+.5,side,z+.04),p(q+.5,side,z+.51),p(q,side,z+.51)],'#fff386',a*1.8)}}}const g=ctx.createRadialGradient(w/2,h*.46,30,w/2,h*.46,w*.38);g.addColorStop(0,'#ffdb5b');g.addColorStop(.6,'#ffdb5bf5');g.addColorStop(1,'#ffdb5b00');ctx.fillStyle=g;ctx.fillRect(0,0,w,h)}requestAnimationFrame(draw)}resize();requestAnimationFrame(draw)})();
