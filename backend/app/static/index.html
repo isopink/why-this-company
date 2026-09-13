@@ -567,6 +567,7 @@ function companyList(){if(!sel)return;const q=$('#companySearch').value.trim().t
 function pickCo(name){
   if(!picked.job||!picked.job.cos.includes(name))return;
   picked.co=name;
+  jobResult=null; pickedJobId=null;
   fetch('/api/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({company:name,job:picked.job.name.replace('\n',' ')})})
     .then(r=>r.json())
     .then(d=>{pickedJobId=d.job_id;console.log('job_id set from /api/jobs:',pickedJobId);})
