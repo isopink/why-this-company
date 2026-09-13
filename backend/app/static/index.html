@@ -344,15 +344,6 @@
     </div>
   </section>
 
-  <!-- ========== 35 ========== -->
-  <section class="screen" id="s35">
-    <div class="wrap">
-      <h2>제목</h2>
-      <div id="reportBody"></div>
-      <button class="btn" id="goQ2">질문 시작하기</button>
-    </div>
-  </section>
-
   <!-- ========== 4 ========== -->
   <section class="screen" id="s4">
     <div class="progress"><i id="bar"></i></div>
@@ -576,8 +567,7 @@ function companyList(){if(!sel)return;const q=$('#companySearch').value.trim().t
 function pickCo(name){
   if(!picked.job||!picked.job.cos.includes(name))return;
   picked.co=name;
-  jobResult=null; pickedJobId=null;
-  fetch('/api/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({company:name,job:picked.job.name.replace('\\n',' ')})})
+  fetch('/api/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({company:name,job:picked.job.name.replace('\n',' ')})})
     .then(r=>r.json())
     .then(d=>{pickedJobId=d.job_id;console.log('job_id set from /api/jobs:',pickedJobId);})
     .catch(e=>console.error('POST /api/jobs error',e));
@@ -669,11 +659,9 @@ function buildStepsFromResult(){
   const out=[];
   let di=0;
   for(const item of qs){
-    const bullets=String(item.text||'').replace(/
-
+    const bullets=String(item.text||'').replace(/
 /g,'
-').replace(/
-/g,'
+').replace(//g,'
 ')
       .split('
 -').slice(1).map(b=>b.trim()).filter(Boolean);
