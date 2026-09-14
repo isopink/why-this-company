@@ -1242,6 +1242,7 @@ const j=picked.job.name.replace('\n',' '),co=picked.co,dart='<a href="https://da
   const S=jobResult.result.summary;
   const ps = jobResult.result.problems || [];
   const qs = jobResult.result.questions || [];
+  const RISK = jobResult.result.risk || '';
   const items=ps.map((p,i)=>{
     const no='주목 '+(i+1);
     const tag=p.title;
@@ -1249,6 +1250,7 @@ const j=picked.job.name.replace('\n',' '),co=picked.co,dart='<a href="https://da
     const title=p.title.replace(/^주목\s+\d+\.\s*/, '')
     return {id:'d'+i, no, tag, title, basis:p.basis||'', metric:(p.value||'').replace(/\(판정:.*$/,'')||'', q: q ? (splitBullets(q.text)[0] || '') : '', follow:'', ev:[['자료 상태','공시 연결됨'],['수치 · 기준', p.value || '확인 불가'],['원문 위치', (p.source_position || '') + ' · ' + `<a href="${p.source}" target="_blank" rel="noopener noreferrer">원문 보기 ↗</a>`],['매핑 좌표', (p.mapping||[]).join(' ')]]};
   });
+  if(RISK){ items.push({id:'risk', no:'위험요소', rule:'공시 원문', tag:'회사가 직접 밝힌 위험요소', title:'회사가 사업보고서에 직접 적은 위험요소', basis:'사업보고서 위험요소 항목', metric:RISK, follow:'', ev:[], q:S.company+'가 공시한 위험요소를 읽었다면, '+S.job+' 직무와의 관련성을 어떻게 설명하시겠어요?'}) }
   return {co:S.company, job:S.job, status:S.basis_year+'년 사업보고서 · '+S.fs_basis+' 기준', items};
 }function renderReport(){const R=buildReport();$('#pickLineR').textContent=R.co+' · '+R.job;$('#reportStage').innerHTML=`<p class="report-note"><span class="dot"></span>${escapeHTML(R.status)}${upload?` · IR 자료 <b>${escapeHTML(upload)}</b> 연결됨`:''}</p><div class="report-grid">${R.items.map((it,k)=>`<article class="report-card${it.id==='risk'?' wide':''}"><div class="report-head"><span class="report-rule">${escapeHTML(it.rule)}</span><span class="report-no">${escapeHTML(it.no)}</span></div><h3>${escapeHTML(it.title)}</h3><dl><dt>수치</dt><dd>${escapeHTML(it.metric)}</dd><dt>기준</dt><dd>${escapeHTML(it.basis)}</dd><dt>원문</dt><dd><a href="https://dart.fss.or.kr/" target="_blank" rel="noopener noreferrer">DART에서 확인 ↗</a></dd></dl><p class="report-q">질문 ${k+1} · ${escapeHTML(it.q)}</p></article>`).join('')}</div>`;const h=document.querySelector('#s3r h2');if(h){h.tabIndex=-1;h.focus({preventScroll:true})}}
 
