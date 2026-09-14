@@ -594,7 +594,7 @@
 
 .globe-node-dot{display:block;width:100%;height:100%;border:1px solid #202020a0;border-radius:50%;background:radial-gradient(circle at 30% 25%,#fff 0%,#f3f3f3 48%,#e4e2e1 100%)}
 
-.globe-node.job .globe-node-dot,.globe-node.available .globe-node-dot{background:radial-gradient(circle at 30% 25%,#fff386 0%,#ffdb5b 58%,#c8ab47 100%)}
+.globe-node.job .globe-node-dot{background:radial-gradient(circle at 30% 25%,#fff386 0%,#ffdb5b 58%,#c8ab47 100%)}
 
 .globe-node.chosen .globe-node-dot{background:radial-gradient(circle at 30% 25%,#575656,#202020 70%);outline:3px solid #ffdb5b;outline-offset:4px}
 
@@ -1353,7 +1353,7 @@ for(let lat=-Math.PI/3;lat<=Math.PI/3;lat+=Math.PI/6){const pts=[];for(let t=0;t
 
 ctx.textAlign='center';ctx.textBaseline='middle';for(const p of dots){const q=project(p);if(q.z<.01)continue;const glow=Math.max(0,1-Math.hypot(q.x-pointer.x,q.y-pointer.y)/110);ctx.fillStyle=`rgba(32,32,32,${(p.land?.20:.07)+q.z*(p.land?.26:.09)+glow*.10})`;if(p.glyph){ctx.font=`700 ${Math.max(7,r*.039)*(.65+.35*q.z)}px 'Noto Sans KR',sans-serif`;ctx.fillText(p.glyph,q.x,q.y)}else{const size=(p.land?1.45:1)*(r/225)*(.7+q.z*.5);ctx.fillRect(q.x,q.y,size,size)}}
 
-const positions=new Map(nodes.map(n=>[n.id,project(n,1.05)]));for(const job of JOBS){const from=nodes.find(n=>n.id===job.id);for(const name of job.cos){const to=nodes.find(n=>n.id===name),a=positions.get(job.id),b=positions.get(name),hot=sel===job.id;if(sel&&!hot)continue;if(a.z<-.2&&b.z<-.2)continue;// Use equal angular steps so long arcs stay smooth near opposite nodes.
+const positions=new Map(nodes.map(n=>[n.id,project(n,1.05)]));for(const job of JOBS){const from=nodes.find(n=>n.id===job.id);for(const name of job.cos){const to=nodes.find(n=>n.id===name),a=positions.get(job.id),b=positions.get(name),hot=sel===job.id;if(a.z<-.2&&b.z<-.2)continue;// Use equal angular steps so long arcs stay smooth near opposite nodes.
 
 const dot=Math.max(-1,Math.min(1,from.x*to.x+from.y*to.y+from.z*to.z)),angle=Math.acos(dot);
 
@@ -1367,9 +1367,9 @@ const segments=Math.max(48,Math.ceil(angle*r/3));ctx.beginPath();let penDown=fal
 
 for(let k=0;k<=segments;k++){const t=k/segments,c=Math.cos(angle*t),sn=Math.sin(angle*t);const point=k===0?from:k===segments?to:{x:from.x*c+ux*sn,y:from.y*c+uy*sn,z:from.z*c+uz*sn};const q=project(point,1.05+Math.sin(t*Math.PI)*.035);if(q.z<0){penDown=false;continue}if(!penDown){ctx.moveTo(q.x,q.y);penDown=true}else ctx.lineTo(q.x,q.y)}
 
-ctx.lineWidth=hot?1.25:.6;ctx.strokeStyle=hot?'rgba(32,32,32,.40)':'rgba(32,32,32,.07)';ctx.stroke()}}
+ctx.lineWidth=hot?1.35:.55;ctx.strokeStyle=hot?'rgba(32,32,32,.42)':'rgba(32,32,32,.22)';ctx.stroke()}}
 
-const labels=[];for(const n of [...nodes].sort((a,b)=>positions.get(b.id).z-positions.get(a.id).z)){const p=positions.get(n.id),allowed=n.kind==='job'||!sel||n.jobs.includes(sel),selected=n.kind==='job'&&n.id===sel,front=p.z>-.12,base=n.base*Math.max(.65,Math.min(1.15,r/235)),size=Math.max(24,base*2*(.68+.32*(p.z+1)/2)),opacity=allowed?(p.z<0?.25: .67+p.z*.33):.16;n.el.style.left=p.x+'px';n.el.style.top=p.y+'px';n.el.style.opacity=opacity;n.el.style.zIndex=String(Math.round((p.z+1)*100));n.el.style.setProperty('--node-size',size+'px');n.el.classList.toggle('chosen',selected);n.el.classList.toggle('available',!!sel&&n.kind==='co'&&allowed);n.el.disabled=n.kind==='co'&&!allowed;n.el.setAttribute('aria-pressed',String(selected));const label=n.el.querySelector('.globe-node-label'),fontSize=Math.max(11.5,Math.min(15.5,r*.065))*(.94+.06*Math.max(0,p.z));label.style.fontSize=fontSize+'px';ctx.font=`700 ${fontSize}px 'Noto Sans KR',sans-serif`;const tw=ctx.measureText(n.label).width+12,ly=p.y+size/2+8,labelX=Math.max(8+tw/2,Math.min(w-8-tw/2,p.x));label.style.left=`calc(50% + ${labelX-p.x}px)`;let show=front&&allowed;const rect={x:labelX-tw/2,y:ly,w:tw,h:fontSize*1.5+2};if(show&&!selected&&labels.some(b=>rect.x<b.x+b.w&&rect.x+rect.w>b.x&&rect.y<b.y+b.h&&rect.y+rect.h>b.y))show=false;if(show)labels.push(rect);label.style.opacity=show?'1':'0';n.el.tabIndex=front&&allowed?0:-1;n.el.style.pointerEvents=front&&allowed?'auto':'none';}
+const labels=[];for(const n of [...nodes].sort((a,b)=>positions.get(b.id).z-positions.get(a.id).z)){const p=positions.get(n.id),allowed=n.kind==='job'||!sel||n.jobs.includes(sel),selected=n.kind==='job'&&n.id===sel,front=p.z>-.12,base=n.base*Math.max(.65,Math.min(1.15,r/235)),size=Math.max(24,base*2*(.68+.32*(p.z+1)/2)),opacity=allowed?(p.z<0?.25: .67+p.z*.33):.16;n.el.style.left=p.x+'px';n.el.style.top=p.y+'px';n.el.style.opacity=opacity;n.el.style.zIndex=String(Math.round((p.z+1)*100));n.el.style.setProperty('--node-size',size+'px');n.el.classList.toggle('chosen',selected);n.el.classList.toggle('available',!!sel&&n.kind==='co'&&allowed);n.el.disabled=n.kind==='co'&&!allowed;n.el.setAttribute('aria-pressed',String(selected));const label=n.el.querySelector('.globe-node-label'),fontSize=Math.max(11.5,Math.min(15.5,r*.065))*(.94+.06*Math.max(0,p.z));label.style.fontSize=fontSize+'px';ctx.font=`700 ${fontSize}px 'Noto Sans KR',sans-serif`;const tw=ctx.measureText(n.label).width+12,ly=p.y+size/2+8,labelX=Math.max(8+tw/2,Math.min(w-8-tw/2,p.x));label.style.left=`calc(50% + ${labelX-p.x}px)`;let show=front&&allowed;const rect={x:labelX-tw/2,y:ly,w:tw,h:fontSize*1.5+2};if(show&&!selected&&labels.some(b=>rect.x<b.x+b.w&&rect.x+rect.w>b.x&&rect.y<b.y+b.h&&rect.y+rect.h>b.y))show=false;if(show)labels.push(rect);label.style.opacity=show?'1':'0';n.el.tabIndex=-1;n.el.style.pointerEvents='none';}
 
 }
 
