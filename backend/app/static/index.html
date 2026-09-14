@@ -1255,12 +1255,12 @@ const j=picked.job.name.replace('\n',' '),co=picked.co,dart='<a href="https://da
     const ev=[['자료 상태','공시 연결됨'],['수치 · 기준', p.value || '확인 불가'],['원문 위치', (p.source_position || '') + ' · ' + `<a href="${p.source}" target="_blank" rel="noopener noreferrer">원문 보기 ↗</a>`],['매핑 좌표', (p.mapping||[]).join(' ')]];
     const bullets = q ? splitBullets(q.text) : [];
     if (bullets.length === 0) {
-      return {id:'d'+i, no:noBase, tag, title, basis:p.basis||'', metric:(p.value||'').replace(/\(판정:.*$/,'')||'', q:'', follow:'', ev:ev};
+      return {id:'d'+i, no:noBase, tag, title, basis:p.basis||'', metric:(() => { const v = p.value || ''; const idx = v.indexOf('(판정:'); return idx === -1 ? v : v.slice(0, idx); })(), q:'', follow:'', ev:ev};
     }
     return bullets.map((b,bi)=>({
       id:'d'+(bi>0? String(i)+'_b'+bi : String(i)),
       no: '주목 '+(i+1) + (bullets.length>1? ' '+(bi+1)+'/'+bullets.length : ''),
-      tag, title, basis:p.basis||'', metric:(p.value||'').replace(/\\(판정:.*$/,'')||'', q:b, follow:'', ev:ev
+      tag, title, basis:p.basis||'', metric:(() => { const v = p.value || ''; const idx = v.indexOf('(판정:'); return idx === -1 ? v : v.slice(0, idx); })(), q:b, follow:'', ev:ev
     }));
   });
   if (items.length === 0) {
