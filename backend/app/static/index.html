@@ -1372,6 +1372,7 @@ document.querySelector('#globeZoomIn').onclick=()=>setZoom(zoom+.1);document.que
 })();
 
 function splitBullets(s){if(!s)return[];const p=s.split(String.fromCharCode(10)+'- ');return p.slice(1).map(x=>{const t=x.trim();const i=t.indexOf('(매핑 테이블:');return i>=0?t.slice(0,i).trim():t;});}
+function getSection(fullText,header){if(!fullText||!header)return'';const lines=fullText.split(String.fromCharCode(10));let found=false;const out=[];for(let i=0;i<lines.length;i++){const l=lines[i];if(!found){if(l.startsWith(header)){found=true;}}else{if(l.startsWith('[')||l.startsWith('##'))break;out.push(l);}}return out.join(String.fromCharCode(10));}
 
 </script></body>
 
