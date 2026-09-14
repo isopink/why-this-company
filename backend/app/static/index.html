@@ -608,25 +608,7 @@ pickedJobId=null;
 fetch('/api/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({company:name,job:picked.job.name.replace(String.fromCharCode(10),' ')})}).then(r=>r.json()).then(d=>{pickedJobId=d.job_id;console.log('job_id:',pickedJobId)}).catch(e=>console.error('POST /api/jobs',e));
 go('s2u')
 }
-function runLoad(){if(!picked.job||!picked.co){go('s2');return}$('#pickLine').textContent=picked.co+' · '+picked.job.name.replace('\n',' ');$('#goQ').disabled=true;$('#goQ').classList.remove('ready');const box=$('#loader'),label=$('#loaderLabel'),names=['공시 원문 내려받기','재무·사업 내용 읽기','주목할 사항 판정','질문 만들기','수치 재대조'];box.classList.remove('done');const finish=()=>{box.classList.add('done');label.textContent='질문이 준비됐어요';$('#goQ').disabled=false;$('#goQ').classList.add('ready')};if(reduce){finish();return}poll()}function poll(){
-  if(!pickedJobId){setTimeout(poll,1000);return}
-  fetch('/api/jobs/'+pickedJobId)
-    .then(r=>r.json())
-    .then(j=>{
-      jobResult=j;
-      if(j.status==='done'){finish()}
-      else if(j.status==='error'){label.textContent=(j.result&&j.result.reason)||'조회 중 오류가 발생했습니다';}
-      else{
-        const s=j.steps;
-        label.textContent = s&&s.verify ? names[4]
-          : s&&s.render ? names[3]
-          : s&&s.solar ? names[2]
-          : s&&s.judge ? names[1]
-          : names[0];
-        setTimeout(poll,2000)
-      }
-    })
-}
+function runLoad(){if(!picked.job||!picked.co){go('s2');return}$('#pickLine').textContent=picked.co+' · '+picked.job.name.replace('\\n',' ');$('#goQ').disabled=true;$('#goQ').classList.remove('ready');const box=$('#loader'),label=$('#loaderLabel'),names=['공시 원문 내려받기','재무·사업 내용 읽기','주목할 사항 판정','질문 만들기','수치 재대조'];box.classList.remove('done');const finish=()=>{box.classList.add('done');label.textContent='질문이 준비됐어요';$('#goQ').disabled=false;$('#goQ').classList.add('ready')};if(reduce){finish();return}const poll=()=>{if(!pickedJobId){setTimeout(poll,1000);return}fetch('/api/jobs/'+pickedJobId).then(r=>r.json()).then(j=>{jobResult=j;if(j.status==='done'){finish()}else if(j.status==='error'){label.textContent=(j.result&&j.result.reason)||'조회 중 오류가 발생했습니다';}else{const s=j.steps;label.textContent=s&&s.verify?names[4]:s&&s.render?names[3]:s&&s.solar?names[2]:s&&s.judge?names[1]:names[0];setTimeout(poll,2000)}})};poll()}
 function buildReport(){const j=picked.job.name.replace('\n',' '),co=picked.co,dart='<a href="https://dart.fss.or.kr/" target="_blank" rel="noopener noreferrer">DART에서 회사명으로 검색 ↗</a>',status='공시 미연결 · 조건을 가정한 예시';const base=(i,rule)=>[['자료 상태',status],['수치 · 기준','확인 불가 — 선택 회사의 공시 조회 전'],['원문 위치','보고서 접수번호 연결 전 · '+dart],['매핑 좌표',escapeHTML(rule+' × '+j)+' (화면 구성 예시)']];return{co,job:j,status,items:[
 {id:'d0',no:'주목 1',rule:'편중',tag:'주목 1. 매출 구성',title:'매출이 특정 시장·제품에 집중되어 있는지',basis:'단일 시장 또는 제품군의 매출 비중이 높고, 최근 3년 사이 그 비중이 커졌을 때',metric:'확인 불가 — 공시 조회 전',q:`${co}의 매출이 특정 시장에 집중되어 있다면, ${j} 직무에서 무엇을 먼저 살펴봐야 할까요?`,follow:'그 판단을 확인하려면 어떤 공시 자료가 필요할까요?',ev:base(0,'편중')},
 {id:'d1',no:'주목 2',rule:'의존',tag:'주목 2. 공급망 구조',title:'소수 공급처에 의존하고 있는지',basis:'주요 원재료·부품 매입처 상위 몇 곳의 비중이 높을 때',metric:'확인 불가 — 공시 조회 전',q:`${co}가 소수 공급처에 의존한다면, ${j} 관점에서 어떤 대안을 검토할 수 있을까요?`,follow:'이 상황과 연결되는 나의 경험이나 배운 내용이 있나요?',ev:base(1,'의존')},
