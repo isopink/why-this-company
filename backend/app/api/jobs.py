@@ -437,6 +437,7 @@ async def _run_pipeline(job_id: str, company: str, job_family: str) -> None:
         job["status"] = "done"
         job["result"] = {
             "report_available": True,
+            "report_text": job.get("draft", ""),
             "summary": summary,
             "problems": problems,
             "questions": questions,
