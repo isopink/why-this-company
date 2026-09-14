@@ -522,6 +522,7 @@ const JOBS = [
 
 /* ---------------- state ---------------- */
 let picked = {job:null, co:null};
+let pickedJobId=null,jobResult=null;
 const $ = s => document.querySelector(s);
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -599,7 +600,14 @@ function go(id){clearTimeout(loadTimer);document.querySelectorAll('.screen').for
 function pickJob(job){sel=job.id;picked.job=job;$('#mapTitle').textContent=job.name.replace('\n',' ')+(['proc','sales','plan'].includes(job.id)?'으로':'로')+' 만나는 회사';$('#mapSub').textContent='연결된 기업 또는 검색 결과에서 회사를 선택하세요';$('#mapBack').hidden=false;$('#panelTitle').textContent='어느 회사가 궁금한가요?';$('#panelHelp').textContent='';$('#jobButtons').hidden=true;$('#companySearchWrap').hidden=false;$('#companySearch').value='';companyList()}
 function resetMap(){sel=null;picked={job:null,co:null};$('#mapTitle').textContent='지원할 직무를 고르세요';$('#mapSub').textContent='';$('#mapBack').hidden=true;$('#panelTitle').textContent='어떤 일에 끌리나요?';$('#panelHelp').textContent='원을 누르거나 아래 직무를 선택하세요.';$('#jobButtons').hidden=false;$('#companySearchWrap').hidden=true;$('#jobButtons').innerHTML=JOBS.map(j=>`<button class="job-choice" data-job="${j.id}">${escapeHTML(j.name.replace('\n',' '))}<span>↗</span></button>`).join('');$('#jobButtons').querySelectorAll('[data-job]').forEach(b=>b.onclick=()=>{window.globeFocus?.(b.dataset.job);pickJob(JOBS.find(j=>j.id===b.dataset.job))})}
 function companyList(){if(!sel)return;const q=$('#companySearch').value.trim().toLowerCase();const pool=CO.filter(c=>c.jobs.includes(sel)&&(c.name.toLowerCase().includes(q)||(codes[c.name]||'').includes(q)));$('#companyResults').innerHTML=pool.map(c=>`<button class="company-option" data-company="${escapeHTML(c.name)}">${escapeHTML(c.name)} ↗<small>${codes[c.name]} · 연결 직무 ${c.jobs.length}개</small></button>`).join('')||'<p>일치하는 기업이 없습니다. 다른 이름이나 종목코드로 검색해 주세요.</p>';$('#companyResults').querySelectorAll('[data-company]').forEach(b=>b.onclick=()=>{const name=b.dataset.company;if(window.globeFocus)globeFocus(name,()=>pickCo(name));else pickCo(name)})}
-function pickCo(name){if(!picked.job||!picked.job.cos.includes(name))return;picked.co=name;go('s2u')}
+function pickCo(name){
+if(!picked.job||!picked.job.cos.includes(name))return;
+picked.co=name;
+jobResult=null;
+pickedJobId=null;
+fetch('/api/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({company:name,job:picked.job.name.replace(String.fromCharCode(10),' ')})}).then(r=>r.json()).then(d=>{pickedJobId=d.job_id;console.log('job_id:',pickedJobId)}).catch(e=>console.error('POST /api/jobs',e));
+go('s2u')
+}
 function runLoad(){if(!picked.job||!picked.co){go('s2');return}$('#pickLine').textContent=picked.co+' · '+picked.job.name.replace('\n',' ');$('#goQ').disabled=true;$('#goQ').classList.remove('ready');const box=$('#loader'),label=$('#loaderLabel'),names=['공시 원문 내려받기','재무·사업 내용 읽기','주목할 사항 판정','질문 만들기','수치 재대조'],wait=[400,650,550,600,350];box.classList.remove('done');const finish=()=>{box.classList.add('done');label.textContent='질문이 준비됐어요';$('#goQ').disabled=false;$('#goQ').classList.add('ready')};if(reduce){finish();return}let i=0;const tick=()=>{if(i<names.length){label.textContent=names[i];loadTimer=setTimeout(tick,wait[i]);i++}else finish()};tick()}
 function buildReport(){const j=picked.job.name.replace('\n',' '),co=picked.co,dart='<a href="https://dart.fss.or.kr/" target="_blank" rel="noopener noreferrer">DART에서 회사명으로 검색 ↗</a>',status='공시 미연결 · 조건을 가정한 예시';const base=(i,rule)=>[['자료 상태',status],['수치 · 기준','확인 불가 — 선택 회사의 공시 조회 전'],['원문 위치','보고서 접수번호 연결 전 · '+dart],['매핑 좌표',escapeHTML(rule+' × '+j)+' (화면 구성 예시)']];return{co,job:j,status,items:[
 {id:'d0',no:'주목 1',rule:'편중',tag:'주목 1. 매출 구성',title:'매출이 특정 시장·제품에 집중되어 있는지',basis:'단일 시장 또는 제품군의 매출 비중이 높고, 최근 3년 사이 그 비중이 커졌을 때',metric:'확인 불가 — 공시 조회 전',q:`${co}의 매출이 특정 시장에 집중되어 있다면, ${j} 직무에서 무엇을 먼저 살펴봐야 할까요?`,follow:'그 판단을 확인하려면 어떤 공시 자료가 필요할까요?',ev:base(0,'편중')},
