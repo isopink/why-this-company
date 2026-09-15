@@ -35,11 +35,37 @@ STOP = {"방법", "장치", "시스템", "제조", "조성물", "및", "이를",
         "그", "제조방법", "포함하는", "이용한", "기반", "용도", "the", "and",
         "of", "for", "method", "apparatus", "system",
         "또는", "또한", "등", "상기", "하는", "있는", "통한", "따른", "이의", "그의",
-        "구비한", "갖는", "형", "유형", "with", "using", "same", "thereof", "having"}
+        "구비한", "갖는", "형", "유형", "with", "using", "same", "thereof", "having",
+        "복수", "단수", "개의", "제어", "구성", "동작", "처리", "수행", "제공", "생성",
+        "기반", "관련", "다수", "일부", "전체", "부분", "복합", "단일", "구조", "형태"}
 
 
 def _api_key():
     return os.environ.get("KIPRIS_API_KEY")
+
+
+_CORP_WORDS = ("주식회사", "유한회사", "합자회사", "재단법인", "사단법인", "농업회사법인")
+
+
+def _norm_applicant(name):
+    """출원인명에서 공백·괄호·법인격 표기를 지워 비교용 문자열을 만든다."""
+    s = (name or "")
+    for w in _CORP_WORDS:
+        s = s.replace(w, "")
+    out = []
+    for ch in s:
+        if ch.isalnum():
+            out.append(ch)
+    return "".join(out).lower()
+
+
+def _same_company(applicant, query):
+    """출원인명이 검색한 회사명으로 시작하면 같은 회사로 본다."""
+    a = _norm_applicant(applicant)
+    q = _norm_applicant(query)
+    if not a or not q:
+        return False
+    return a.startswith(q)
 
 
 def _get(params):
@@ -61,8 +87,13 @@ def _keywords(titles, top=5):
     cnt = collections.Counter()
     for t in titles:
         for tok in re.findall(r"[가-힣A-Za-z]{2,}", t):
-            if tok not in STOP and tok.lower() not in STOP:
-                cnt[tok] += 1
+            if tok in STOP or tok.lower() in STOP:
+                continue
+            if tok[-1] in "의는한된을를이가과와로써서":
+                continue
+            if tok.endswith(("하는", "되는", "위한", "따른", "관한", "대한", "갖는", "있는")):
+                continue
+            cnt[tok] += 1
     return [w for w, c in cnt.most_common(top) if c >= 2] or \
            [w for w, _ in cnt.most_common(3)]
 
@@ -105,10 +136,9 @@ def fetch(company_name, years=3):
                     m = re.match(r"(\d{4})", ch.text.strip())
                     if m and int(m.group(1)) < cutoff:
                         year_ok = False
-            if title and year_ok:
+            if title and year_ok and appl and _same_company(appl, company_name):
                 titles.append(title)
-                if appl:
-                    applicants[appl] += 1
+                applicants[appl] += 1
     if not titles:
         return {"ok": False,
                 "reason": "출원인명 검색 0건 — 법인명 표기 차이 가능성, 특허 정보 확인 불가"}
