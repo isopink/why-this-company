@@ -753,6 +753,7 @@
 .report-card{background:#fff;border-radius:20px;padding:22px 24px;display:flex;flex-direction:column;gap:10px;min-width:0}
 
 .report-card.wide{grid-column:1/-1}
+.report-card:only-child{grid-column:1/-1}
 
 .report-head{display:flex;align-items:center;gap:10px}
 
@@ -770,6 +771,9 @@
 
 .report-card dd a{text-decoration:underline}
 .report-good{background:#fff;border-radius:20px;padding:20px 24px;margin:0 0 18px}
+.report-none{background:#fff;border-radius:20px;padding:20px 24px;margin:18px 0 0}
+.report-none h3{margin:0 0 10px;font-size:17px;font-weight:700;color:#575656;word-break:keep-all}
+.report-none .body{white-space:pre-line;line-height:1.7;font-size:15px;color:#575656;word-break:keep-all}
 .report-good h3{margin:0 0 10px;font-size:17px;font-weight:700;color:#202020;word-break:keep-all}
 .report-good .body{white-space:pre-line;line-height:1.7;font-size:15px;word-break:keep-all}
 
@@ -1267,12 +1271,13 @@ const j=picked.job.name.replace('\n',' '),co=picked.co,dart='<a href="https://da
     items.push({id:'none',no:'판정 결과',rule:'해당 없음',tag:'판정 기준을 넘은 항목 없음',title:'이 회사에서는 판정 기준을 넘는 항목이 없었습니다',basis:'쏠림·급변·의존·정체·투자 확대·수익성 악화 여섯 기준을 모두 검사했습니다',metric:'해당 없음',q:'이 회사는 여섯 기준에서 특이사항이 없었습니다. 그렇다면 왜 이 회사인지, 어디서 근거를 찾으시겠어요?',follow:'',ev:[]});
   }
   return {co:S.company, job:S.job, status:S.basis_year+'년 사업보고서 · '+S.fs_basis+' 기준', items};
-}function renderReport(){
+}function splitBasis(raw){let t=(raw||'').trim();if(t.indexOf('(판정:')===0){t=t.slice(4);if(t.charAt(t.length-1)===')')t=t.slice(0,-1)}t=t.trim();const i=t.indexOf('(참조:');if(i===-1)return{main:t,ref:''};let main=t.slice(0,i).trim();let ref=t.slice(i+4).trim();while(ref.charAt(ref.length-1)===')')ref=ref.slice(0,-1);return{main:main,ref:ref.trim()}}
+function renderReport(){
 const R=buildReport();
 const GOOD=(jobResult&&jobResult.result)?getSection(jobResult.result.report_text,'[잘하고 있는 것]'):'';
 const NONE=(jobResult&&jobResult.result)?getSection(jobResult.result.report_text,'[확인 결과 특이사항 없음]'):'';
 $('#pickLineR').textContent=R.co+' · '+R.job;
-$('#reportStage').innerHTML=`<p class="report-note"><span class="dot"></span>${escapeHTML(R.status)}${upload?` · IR 자료 <b>${escapeHTML(upload)}</b> 연결됨`:''}</p>${GOOD?`<article class="report-good"><h3>잘하고 있는 것</h3><div class="body">${escapeHTML(GOOD).split(String.fromCharCode(10)).join('<br>')}</div></article>`:''}<div class="report-grid">${R.items.filter(it=>!it.id.includes('_b')).map((it,k)=>it.rule==='공통'?`<article class="report-card wide"><div class="report-head"><span class="report-rule">공통 질문</span></div><p class="report-q" style="font-size:1.3em;line-height:1.75">${escapeHTML(it.q)}</p></article>`:`<article class="report-card${it.id==='risk'?' wide':''}"><div class="report-head"><span class="report-rule">${escapeHTML(it.rule)}</span><span class="report-no">${escapeHTML(it.no)}</span></div><h3>${escapeHTML(it.title)}</h3><dl><dt>수치</dt><dd>${escapeHTML(it.metric)}</dd><dt>기준</dt><dd>${escapeHTML(it.basis)}</dd><dt>원문</dt><dd><a href="https://dart.fss.or.kr/target="_blank" rel="noopener noreferrer">DART에서 확인 ↗</a></dd></dl><p class="report-q">질문 ${k+1} · ${escapeHTML(it.q)}</p></article>`).join('')}</div>${NONE?`<article class="report-none"><h3>확인 결과 특이사항 없음</h3><div class="body">${escapeHTML(NONE).split(String.fromCharCode(10)).join('<br>')}</div></article>`:''}`;
+$('#reportStage').innerHTML=`<p class="report-note"><span class="dot"></span>${escapeHTML(R.status)}${upload?` · IR 자료 <b>${escapeHTML(upload)}</b> 연결됨`:''}</p>${GOOD?`<article class="report-good"><h3>잘하고 있는 것</h3><div class="body">${escapeHTML(GOOD).split(String.fromCharCode(10)).join('<br>')}</div></article>`:''}<div class="report-grid">${R.items.filter(it=>!it.id.includes('_b')).map((it,k)=>it.rule==='공통'?`<article class="report-card wide"><div class="report-head"><span class="report-rule">공통 질문</span></div><p class="report-q" style="font-size:1.3em;line-height:1.75">${escapeHTML(it.q)}</p></article>`:`<article class="report-card${it.id==='risk'?' wide':''}"><div class="report-head"><span class="report-rule">${escapeHTML(it.rule)}</span><span class="report-no">${escapeHTML(it.no)}</span></div><h3>${escapeHTML(it.title)}</h3><dl><dt>수치</dt><dd>${escapeHTML(it.metric)}</dd><dt>기준</dt><dd>${escapeHTML(splitBasis(it.basis).main)}</dd>${splitBasis(it.basis).ref?`<dt>참조</dt><dd>${escapeHTML(splitBasis(it.basis).ref)}</dd>`:''}<dt>원문</dt><dd><a href="https://dart.fss.or.kr/target="_blank" rel="noopener noreferrer">DART에서 확인 ↗</a></dd></dl><p class="report-q">질문 ${k+1} · ${escapeHTML(it.q)}</p></article>`).join('')}</div>${NONE?`<article class="report-none"><h3>확인 결과 특이사항 없음</h3><div class="body">${escapeHTML(NONE).split(String.fromCharCode(10)).join('<br>')}</div></article>`:''}`;
 const h=document.querySelector('#s3r h2');if(h){h.tabIndex=-1;h.focus({preventScroll:true})}}function buildSteps(){const j=picked.job.name.replace('\n',' '),co=picked.co,R=buildReport();steps=R.items.map(it=>({kind:'q',id:it.id,tag:it.tag,q:it.q,why:it.why,follow:it.follow,ev:it.ev}));steps.push({kind:'q',id:'c0',tag:'나의 이유',q:`많은 회사 중 왜 ${co}인가요?`,follow:`같은 기준에 맞는 다른 회사도 있을 텐데, 그중 ${co}여야 하는 이유는 무엇인가요?`},{kind:'q',id:'c1',tag:'나의 시작',q:`${co}의 ${j} 직무에 입사하면, 가장 먼저 해보고 싶은 일은 무엇인가요?`,follow:'그 일을 하려면 지금 어떤 준비가 더 필요하다고 보나요?'},{kind:'sum'});cur=0;answers={};docType='ir';if(upload)addUploadStep()}
 
 function renderQuestions(){buildSteps();activeId=Date.now().toString(36)+Math.random().toString(36).slice(2,8);$('#qMeta').textContent=picked.co+' · '+picked.job.name.replace('\n',' ');history.replaceState(null,'',location.pathname+location.search+'#report='+activeId);renderStep();storeAnswers()}
