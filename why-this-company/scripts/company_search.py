@@ -35,7 +35,7 @@ def main():
                 unlisted.append(row)
         listed.sort(key=lambda x: (len(x["name"]), x["name"]))
         unlisted.sort(key=lambda x: (len(x["name"]), x["name"]))
-        items = listed + unlisted
+        items = listed
         print(json.dumps({"ok": True, "items": items[:8]}, ensure_ascii=False))
     except Exception as e:
         print(json.dumps({"ok": False, "items": [], "error": str(e)}, ensure_ascii=False))
