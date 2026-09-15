@@ -29,7 +29,7 @@ IR_SIGNALS = [
     "주주가치", "주주환원", "주주환원정책", "주주환원 정책",
     "주당", "배당금", "배당수익률", "배당 성향",
     "시가총액", "enterprise value", "ev/ebitda",
-    "가이던스", "재무전망", "경영실적", "주요 경영지표",
+    "가이던스", "재무전망", "경영실적", "주요 경영지표", "실적", "영업이익", "매출액", "yoy", "qoq",
 ]
 
 FAMILIES = ["공정·생산", "R&D", "기획·전략", "개발(SW·데이터)", "영업·마케팅", "재무·구매(SCM)"]
@@ -72,8 +72,8 @@ def _family(job: str) -> str:
 def _is_ir(text: str) -> bool:
     if not text or len(text.strip()) < 200:
         return False
-    low = text.lower()
-    return any(s in low for s in IR_SIGNALS)
+    low = _squash(text).lower()
+    return any(_squash(s) in low for s in IR_SIGNALS)
 
 
 def _fit_pages(pages: list) -> tuple:
