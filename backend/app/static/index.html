@@ -957,7 +957,7 @@
 
         </div>
 
-        <p class="loader-label" id="loaderLabel">공시 원문 내려받기</p>
+        <p class="loader-label" id="loaderLabel">공시 원문을 읽고 수치를 대조하는 중입니다</p>
 
       </div>
 
@@ -1225,7 +1225,7 @@ go('s2u')
 
 }
 
-function runLoad(){if(!picked.job||!picked.co){go('s2');return}$('#pickLine').textContent=picked.co+' · '+picked.job.name.replace('\\n',' ');$('#goQ').disabled=true;$('#goQ').classList.remove('ready');const box=$('#loader'),label=$('#loaderLabel'),names=['공시 원문 내려받기','재무·사업 내용 읽기','주목할 사항 판정','질문 만들기','수치 재대조'];box.classList.remove('done');const t0=Date.now();const finish=()=>{box.classList.add('done');label.textContent='질문이 준비됐어요';$('#goQ').disabled=false;$('#goQ').classList.add('ready')};if(reduce){finish();return}const poll=()=>{if(!pickedJobId){setTimeout(poll,1000);return}fetch('/api/jobs/'+pickedJobId).then(r=>r.json()).then(j=>{jobResult=j;if(j.status==='done'){const e=Date.now()-t0;if(e<1500){setTimeout(finish,1500-e)}else{finish()}}else if(j.status==='error'){label.textContent=(j.result&&j.result.reason)||'조회 중 오류가 발생했습니다';}else{const s=j.steps;label.textContent=s&&s.verify?names[4]:s&&s.render?names[3]:s&&s.solar?names[2]:s&&s.judge?names[1]:names[0];setTimeout(poll,2000)}})};poll()}
+function runLoad(){if(!picked.job||!picked.co){go('s2');return}$('#pickLine').textContent=picked.co+' · '+picked.job.name.replace('\\n',' ');$('#goQ').disabled=true;$('#goQ').classList.remove('ready');const box=$('#loader'),label=$('#loaderLabel'),names=['공시 원문을 읽고 수치를 대조하는 중입니다'];box.classList.remove('done');const t0=Date.now();const finish=()=>{box.classList.add('done');label.textContent='확인이 끝났습니다';$('#goQ').disabled=false;$('#goQ').classList.add('ready')};if(reduce){finish();return}const poll=()=>{if(!pickedJobId){setTimeout(poll,1000);return}fetch('/api/jobs/'+pickedJobId).then(r=>r.json()).then(j=>{jobResult=j;if(j.status==='done'){const e=Date.now()-t0;if(e<1500){setTimeout(finish,1500-e)}else{finish()}}else if(j.status==='error'){label.textContent=(j.result&&j.result.reason)||'조회 중 오류가 발생했습니다';}else{label.textContent=names[0];setTimeout(poll,2000)}})};poll()}
 
 function buildReport(){
 
