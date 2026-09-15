@@ -232,9 +232,9 @@ def build(dart, judge, kipris, job, angles, fname):
                      "'## 2단계' 아래 1~2문장, '## 3단계' 아래 문제별 방향성을 쓰고 다시 실행하세요.")
         if len(a2.splitlines()) > 4 or len(a2) > 260:
             sys.exit("render 중단: '## 2단계'가 너무 깁니다(문제당 한 줄, 전체 260자 이내). 방향성은 '## 3단계'로.")
-        long_bullets = [b for b in a3.splitlines() if b.strip().startswith("-") and len(b.strip()) > 95]
+        long_bullets = [b for b in a3.splitlines() if b.strip().startswith("-") and len(b.strip()) > 140]
         if long_bullets:
-            sys.exit("render 중단: 3단계 방향성 항목이 너무 깁니다(항목당 95자 이내, 매핑 테이블 골격 + 회사 숫자 한 구절). "
+            sys.exit("render 중단: 3단계 방향성 항목이 너무 깁니다(항목당 140자 이내, 매핑 테이블 골격 + 회사 숫자 한 구절). "
                      "'~하고 싶다', '~기여하겠다' 같은 자소서 문장이 아니라 방향 명사구로 쓰세요. 예: " + long_bullets[0].strip()[:60] + "…")
         if re.search(r"(하고 싶다|기여하겠다|다지겠다|되고 싶다)", a3):
             sys.exit("render 중단: 3단계에 1인칭 희망 표현이 있습니다('~하고 싶다' 등). 방향성은 명사구로만 씁니다 — 문장은 사용자가 씁니다.")

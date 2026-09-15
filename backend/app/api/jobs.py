@@ -369,7 +369,7 @@ async def _run_pipeline(job_id: str, company: str, job_family: str) -> None:
                 break
 
         if rc != 0:
-            if render_with_angles:
+            if "render 중단" in (last_render_err or "") or "angles 재생성 실패" in (last_render_err or ""):
                 # 마지막 시도로 angles 없이 render 시도
                 rc, out, err = await _run(
                     [sys.executable, str(SCRIPTS_DIR / "render.py"),

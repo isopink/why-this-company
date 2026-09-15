@@ -19,6 +19,7 @@ from fastapi.staticfiles import StaticFiles
 from .core.env import setup_logging
 
 from .api.jobs import router as jobs_router
+from .api.ir import router as ir_router
 
 setup_logging()
 logger = logging.getLogger("why-this-company.backend")
@@ -60,6 +61,7 @@ app.mount(
 )
 
 app.include_router(jobs_router, prefix="/api")
+app.include_router(ir_router, prefix="/api")
 
 
 @app.get("/")
