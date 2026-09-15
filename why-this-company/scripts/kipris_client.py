@@ -89,20 +89,26 @@ def fetch(company_name, years=3):
     import datetime
     cutoff = datetime.date.today().year - years
     titles = []
+    applicants = collections.Counter()
     for item in root.iter():
         if item.tag.lower().endswith("item"):
             title = None
             year_ok = True
+            appl = None
             for ch in item:
                 tag = ch.tag.lower()
                 if "inventiontitle" in tag:
                     title = (ch.text or "").strip()
+                if "applicantname" in tag and ch.text:
+                    appl = ch.text.strip()
                 if "applicationdate" in tag and ch.text:
                     m = re.match(r"(\d{4})", ch.text.strip())
                     if m and int(m.group(1)) < cutoff:
                         year_ok = False
             if title and year_ok:
                 titles.append(title)
+                if appl:
+                    applicants[appl] += 1
     if not titles:
         return {"ok": False,
                 "reason": "출원인명 검색 0건 — 법인명 표기 차이 가능성, 특허 정보 확인 불가"}
@@ -111,6 +117,7 @@ def fetch(company_name, years=3):
         "count": len(titles),
         "years": years,
         "keywords": _keywords(titles),
+        "applicants": [a for a, _ in applicants.most_common(3)],
         "titles_sample": titles[:5],
         "note": "판정에는 미사용 — 투자 확대 보강 및 R&D 방향성 구체화용",
     }

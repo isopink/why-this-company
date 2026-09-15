@@ -223,6 +223,9 @@ async def _run(cmd: list[str], cwd: Path, timeout: float) -> tuple[int, str, str
     child_env = dict(os.environ)
     child_env["PYTHONIOENCODING"] = "utf-8"
     child_env["PYTHONUTF8"] = "1"
+    _kk = Env().kippris_key
+    if _kk:
+        child_env["KIPRIS_API_KEY"] = _kk
     proc = await asyncio.create_subprocess_exec(
         *cmd,
         cwd=cwd,
@@ -288,6 +291,26 @@ async def _run_pipeline(job_id: str, company: str, job_family: str) -> None:
         judge_path.write_text(out, encoding="utf-8")
         job["steps"]["judge"] = {"rc": rc}
         job["judge"] = judge
+
+        # 2-1) kipris — 선택적 보강. 실패해도 파이프라인을 막지 않는다.
+        job["kipris"] = None
+        try:
+            krc, kout, kerr = await _run(
+                [sys.executable, str(SCRIPTS_DIR / "kipris_client.py"), company],
+                cwd, 20.0,
+            )
+            if krc == 0:
+                kdata = json.loads(kout)
+                if kdata.get("ok"):
+                    job["kipris"] = kdata
+                    (job_dir / "kipris.json").write_text(kout, encoding="utf-8")
+                    job["steps"]["kipris"] = {"rc": 0, "count": kdata.get("count", 0)}
+                else:
+                    job["steps"]["kipris"] = {"rc": 0, "skipped": True}
+            else:
+                job["steps"]["kipris"] = {"rc": krc, "skipped": True}
+        except Exception:
+            job["steps"]["kipris"] = {"rc": -1, "skipped": True}
 
         # 3) Solar 각도 생성 — render 전에 work/{job_id}/angles.txt 생성
         #    render 형식 위반 시 최대 2회 재시도, 3회 실패 시 angles 없이 1단계만 렌더
@@ -447,6 +470,7 @@ async def _run_pipeline(job_id: str, company: str, job_family: str) -> None:
             "problems": problems,
             "questions": questions,
             "risk": _extract_risk(dart),
+            "kipris": job.get("kipris"),
             "common_questions": _build_common_questions(
                 job.get("company", ""), job.get("job", ""), len(problems)
             ),
