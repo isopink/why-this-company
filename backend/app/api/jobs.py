@@ -355,6 +355,11 @@ async def _run_pipeline(job_id: str, company: str, job_family: str) -> None:
             cmd = [
                 sys.executable, str(SCRIPTS_DIR / "render.py"),
                 str(dart_path), str(judge_path),
+            ]
+            _kpath = job_dir / "kipris.json"
+            if _kpath.exists():
+                cmd.append(str(_kpath))
+            cmd += [
                 "--job", job_family,
                 "--out", str(draft_path),
             ]

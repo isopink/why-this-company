@@ -992,7 +992,7 @@
 
       <h2 class="title-role">공시에서 이런 점이 눈에 띄었어요</h2>
 
-      <p class="lead">아래 항목 하나마다 질문이 하나씩 이어집니다.</p>
+      <p class="lead">아래 항목을 기반으로 질문이 제시됩니다.</p>
 
       <div id="reportStage"></div>
 
@@ -1274,7 +1274,7 @@ const j=picked.job.name.replace('\n',' '),co=picked.co,dart='<a href="https://da
     }
     return bullets.map((b,bi)=>({
       id:'d'+(bi>0? String(i)+'_b'+bi : String(i)),
-      no: '주목 '+(i+1) + (bullets.length>1? ' '+(bi+1)+'/'+bullets.length : ''),
+      no: '주목 '+(i+1),
       tag, title, basis:p.basis||'', metric:(() => { const v = p.value || ''; const idx = v.indexOf('(판정:'); return idx === -1 ? v : v.slice(0, idx); })(), src:p.source||'', src:p.source||'', q:b, follow:'', ev:ev
     }));
   });
@@ -1288,7 +1288,7 @@ const R=buildReport();
 const GOOD=(jobResult&&jobResult.result)?getSection(jobResult.result.report_text,'[잘하고 있는 것]'):'';
 const NONE=(jobResult&&jobResult.result)?getSection(jobResult.result.report_text,'[확인 결과 특이사항 없음]'):'';
 const KP=(jobResult&&jobResult.result&&jobResult.result.kipris&&jobResult.result.kipris.ok)?jobResult.result.kipris:null;
-const KPHTML=KP?`<article class="report-ip"><h3>기술 쪽에서 보이는 것</h3><div class="body">최근 ${KP.years}년 특허 출원 <b>${KP.count}건</b><div class="kw">${(KP.keywords||[]).map(w=>`<span>${escapeHTML(w)}</span>`).join('')}</div></div><p class="src">KIPRIS 출원인명 검색 결과입니다. 회사가 특허청에 등록한 출원인명이 회사명과 다를 수 있으니, 직접 확인해 보시기 바랍니다. 공시 수치가 아니므로 원문 대조 대상이 아닙니다.</p></article>`:'';
+const KPHTML=KP?`<article class="report-ip"><h3>기술 쪽에서 보이는 것</h3><div class="body">최근 ${KP.years}년 특허 출원 <b>${KP.count}건</b><div class="kw">${(KP.keywords||[]).map(w=>`<span>${escapeHTML(w)}</span>`).join('')}</div></div><p class="src">회사가 특허청에 등록한 출원인명이 회사명과 다를 수 있으니, 직접 확인해보는 것을 권합니다.</p></article>`:'';
 $('#pickLineR').textContent=R.co+' · '+R.job;
 $('#reportStage').innerHTML=`<p class="report-note"><span class="dot"></span>${escapeHTML(R.status)}${upload?` · IR 자료 <b>${escapeHTML(upload)}</b> 연결됨`:''}</p><div class="report-grid">${R.items.filter(it=>!it.id.includes('_b')).map((it,k)=>it.rule==='공통'?`<article class="report-card wide"><div class="report-head"><span class="report-rule">공통 질문</span></div><p class="report-q" style="font-size:1.3em;line-height:1.75">${escapeHTML(it.q)}</p></article>`:`<article class="report-card${it.id==='risk'?' wide':''}"><div class="report-head"><span class="report-rule">${escapeHTML(it.rule)}</span><span class="report-no">${escapeHTML(it.no)}</span></div><h3>${escapeHTML(it.title)}</h3><dl><dt>수치</dt><dd>${escapeHTML(it.metric)}</dd><dt>기준</dt><dd>${escapeHTML(splitBasis(it.basis).main)}</dd>${splitBasis(it.basis).ref?`<dt>참조</dt><dd>${escapeHTML(splitBasis(it.basis).ref)}</dd>`:''}</dl></article>`).join('')}</div>${KPHTML}${GOOD?`<article class="report-good"><h3>잘하고 있는 것</h3><div class="body">${escapeHTML(GOOD).split(String.fromCharCode(10)).join('<br>')}</div></article>`:''}${NONE?`<article class="report-none"><h3>확인 결과 특이사항 없음</h3><div class="body">${escapeHTML(NONE).split(String.fromCharCode(10)).join('<br>')}</div></article>`:''}`;
 const h=document.querySelector('#s3r h2');if(h){h.tabIndex=-1;h.focus({preventScroll:true})}}function buildSteps(){const j=picked.job.name.replace('\n',' '),co=picked.co,R=buildReport();steps=R.items.map(it=>({kind:'q',id:it.id,tag:it.tag,q:it.q,why:it.why,follow:it.follow,ev:it.ev}));steps.push({kind:'q',id:'c0',tag:'나의 이유',q:`많은 회사 중 왜 ${co}인가요?`,follow:`같은 기준에 맞는 다른 회사도 있을 텐데, 그중 ${co}여야 하는 이유는 무엇인가요?`},{kind:'q',id:'c1',tag:'나의 시작',q:`${co}의 ${j} 직무에 입사하면, 가장 먼저 해보고 싶은 일은 무엇인가요?`,follow:'그 일을 하려면 지금 어떤 준비가 더 필요하다고 보나요?'},{kind:'sum'});cur=0;answers={};docType='ir';if(upload)addUploadStep()}

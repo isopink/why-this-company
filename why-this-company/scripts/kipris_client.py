@@ -60,12 +60,16 @@ def _norm_applicant(name):
 
 
 def _same_company(applicant, query):
-    """출원인명이 검색한 회사명으로 시작하면 같은 회사로 본다."""
-    a = _norm_applicant(applicant)
+    """출원인명이 검색한 회사명으로 시작하면 같은 회사로 본다.
+    공동출원(구분자 |)은 한 명이라도 일치하면 같은 회사로 본다."""
     q = _norm_applicant(query)
-    if not a or not q:
+    if not q:
         return False
-    return a.startswith(q)
+    for part in (applicant or "").split("|"):
+        a = _norm_applicant(part)
+        if a and a.startswith(q):
+            return True
+    return False
 
 
 def _get(params):
