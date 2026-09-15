@@ -929,13 +929,13 @@
 
       <p class="pick" id="pickLine"></p>
 
-      <h2 class="title-role">몇 가지 질문을 드리겠습니다</h2>
+      <h2 class="title-role">먼저 리포트를 보여드립니다</h2>
 
-      <p class="lead">공시에서 찾은 사실마다 질문을 하나씩 드립니다.<br>답을 적으면 지원동기 초안이 되고, 같은 답이 면접에서 그대로 쓰입니다.</p>
+      <p class="lead">공시에서 찾은 사실을 정리하는 중입니다.<br>리포트를 확인한 뒤, 사실마다 질문에 답하면 지원동기 초안이 됩니다.</p>
 
       <ol>
 
-        <li>질문 아래에는 그 질문이 나온 숫자와 원문 위치가 붙어 있습니다.</li>
+        <li>각 사실에는 수치와 원문 위치가 붙어 있습니다.</li>
 
         <li>답은 브라우저에 자동 저장되며, 완성 후 파일로 내려받을 수 있습니다.</li>
 
@@ -1227,7 +1227,7 @@ function buildReport(){
 
   if(!jobResult||!jobResult.result){
 
-const j=picked.job.name.replace('\n',' '),co=picked.co,dart='<a href="https://dart.fss.or.kr/" target="_blank" rel="noopener noreferrer">DART에서 회사명으로 검색 ↗</a>',status='공시 미연결 · 조건을 가정한 예시';const base=(i,rule)=>[['자료 상태',status],['수치 · 기준','확인 불가 — 선택 회사의 공시 조회 전'],['원문 위치','보고서 접수번호 연결 전 · '+dart],['매핑 좌표',escapeHTML(rule+' × '+j)+' (화면 구성 예시)']];return{co,job:j,status,items:[
+const j=picked.job.name.replace('\n',' '),co=picked.co,dart='<a href="https://dart.fss.or.kr/" target="_blank" rel="noopener noreferrer">DART에서 회사명으로 검색 ↗</a>',status='공시 미연결 · 조건을 가정한 예시';const base=(i,rule)=>[['자료 상태',status],['수치 · 기준','확인 불가 — 선택 회사의 공시 조회 전'],['원문 위치','보고서 접수번호 연결 전 · '+dart]];return{co,job:j,status,items:[
 
 {id:'d0',no:'주목 1',rule:'편중',tag:'주목 1. 매출 구성',title:'매출이 특정 시장·제품에 집중되어 있는지',basis:'단일 시장 또는 제품군의 매출 비중이 높고, 최근 3년 사이 그 비중이 커졌을 때',metric:'확인 불가 — 공시 조회 전',q:`${co}의 매출이 특정 시장에 집중되어 있다면, ${j} 직무에서 무엇을 먼저 살펴봐야 할까요?`,follow:'그 판단을 확인하려면 어떤 공시 자료가 필요할까요?',ev:base(0,'편중')},
 
@@ -1252,7 +1252,7 @@ const j=picked.job.name.replace('\n',' '),co=picked.co,dart='<a href="https://da
     const tag=p.title;
     const q = qs.find(q => q.source_title === p.title) || null;
     const title=p.title.replace(/^주목\s+\d+\.\s*/, '')
-    const ev=[['자료 상태','공시 연결됨'],['수치 · 기준', p.value || '확인 불가'],['원문 위치', (p.source_position || '') + ' · ' + `<a href="${p.source}" target="_blank" rel="noopener noreferrer">원문 보기 ↗</a>`],['매핑 좌표', (p.mapping||[]).join(' ')]];
+    const ev=[['자료 상태','공시 연결됨'],['수치 · 기준', p.value || '확인 불가'],['원문 위치', (p.source_position || '') + ' · ' + `<a href="${p.source}" target="_blank" rel="noopener noreferrer">원문 보기 ↗</a>`]];
     const bullets = q ? splitBullets(q.text) : [];
     if (bullets.length === 0) {
       return {id:'d'+i, no:noBase, tag, title, basis:p.basis||'', metric:(() => { const v = p.value || ''; const idx = v.indexOf('(판정:'); return idx === -1 ? v : v.slice(0, idx); })(), q:'', follow:'', ev:ev};
