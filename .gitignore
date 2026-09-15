@@ -4,3 +4,7 @@
 *_stop_start_backend.py
 _tmp_replace.py
 fix_report_card.py
+.env
+__pycache__/
+why-this-company/.cache/*
+!why-this-company/.cache/corpCode.zip

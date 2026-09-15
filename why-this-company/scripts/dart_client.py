@@ -107,6 +107,51 @@ def _unit_multiplier(text):
 
 
 # ---------------------------------------------------------------- 1. corpCode
+INDEX_PATH = CACHE_DIR / "corp_index.tsv"
+
+def _build_corp_index(zpath):
+    # corpCode.zip -> corp_index.tsv (회사명 TAB 고유번호 TAB 종목코드), 스트리밍 파싱
+    TAB, NL = chr(9), chr(10)
+    tmp = INDEX_PATH.with_name(INDEX_PATH.name + ".tmp" + str(os.getpid()))
+    with zipfile.ZipFile(zpath) as z, open(tmp, "w", encoding="utf-8", newline="") as out:
+        with z.open(z.namelist()[0]) as f:
+            nm = code = stock = ""
+            for _ev, el in ET.iterparse(f, events=("end",)):
+                tag = el.tag
+                if tag == "corp_name":
+                    nm = (el.text or "").strip().replace(TAB, " ").replace(NL, " ")
+                elif tag == "corp_code":
+                    code = (el.text or "").strip()
+                elif tag == "stock_code":
+                    stock = (el.text or "").strip()
+                elif tag == "list":
+                    out.write(nm + TAB + code + TAB + stock + NL)
+                    el.clear()
+                    nm = code = stock = ""
+    os.replace(tmp, INDEX_PATH)
+
+def ensure_corp_index():
+    # corpCode.zip 과 TSV 인덱스를 확보하고 인덱스 경로를 돌려준다
+    zpath = CACHE_DIR / "corpCode.zip"
+    if not zpath.exists():
+        data = _get(f"{BASE}/corpCode.xml", {}, binary=True)
+        if data[:2] != b"PK":
+            head = data[:300].decode("utf-8", errors="replace")
+            raise RuntimeError(f"corpCode 응답이 ZIP이 아님(키/차단 의심): {head}")
+        zpath.write_bytes(data)
+    if (not INDEX_PATH.exists()) or INDEX_PATH.stat().st_mtime < zpath.stat().st_mtime:
+        _build_corp_index(zpath)
+    return INDEX_PATH
+
+def iter_corp_index():
+    # (회사명, 고유번호, 종목코드) 를 한 줄씩 돌려준다
+    TAB, NL = chr(9), chr(10)
+    with open(ensure_corp_index(), encoding="utf-8", newline="") as f:
+        for line in f:
+            parts = line.rstrip(NL).split(TAB)
+            if len(parts) == 3:
+                yield parts[0], parts[1], parts[2]
+
 def get_corp_code(company_name):
     """기업명 -> 고유번호. corpCode ZIP은 캐시. 미매칭 시 유사 후보 반환."""
     zpath = CACHE_DIR / "corpCode.zip"
@@ -117,14 +162,8 @@ def get_corp_code(company_name):
             head = data[:300].decode("utf-8", errors="replace")
             raise RuntimeError(f"corpCode 응답이 ZIP이 아님(키/차단 의심): {head}")
         zpath.write_bytes(data)
-    with zipfile.ZipFile(zpath) as z:
-        xml = z.read(z.namelist()[0]).decode("utf-8", errors="replace")
-    root = ET.fromstring(xml)
     exact, partial = None, []
-    for el in root.iter("list"):
-        nm = (el.findtext("corp_name") or "").strip()
-        code = (el.findtext("corp_code") or "").strip()
-        stock = (el.findtext("stock_code") or "").strip()
+    for nm, code, stock in iter_corp_index():
         if nm == company_name:
             # 동명 다수면 상장사(종목코드 보유) 우선
             if exact is None or stock:
