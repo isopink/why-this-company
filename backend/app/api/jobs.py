@@ -511,3 +511,18 @@ async def get_job(job_id: str) -> dict:
     }
     # dart/judge/draft/verify 내부 객체는 result 하위로만 노출, 키는 포함하지 않음
     return out
+@router.get("/companies")
+async def search_companies(q: str = "") -> dict:
+    q = (q or "").strip()
+    if len(q) < 2:
+        return {"ok": True, "items": []}
+    rc, out, err = await _run(
+        [sys.executable, str(SCRIPTS_DIR / "company_search.py"), q],
+        str(SKILL_DIR), 30.0,
+    )
+    if rc != 0:
+        return {"ok": False, "items": [], "error": "search failed"}
+    try:
+        return json.loads(out.strip())
+    except Exception:
+        return {"ok": False, "items": [], "error": "bad output"}
