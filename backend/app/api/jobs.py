@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import sys
 import uuid
 import re
@@ -219,9 +220,13 @@ def _build_common_questions(company: str, job: str, problems_count: int) -> list
 
 async def _run(cmd: list[str], cwd: Path, timeout: float) -> tuple[int, str, str]:
     """서브프로세스를 cwd에서 실행, (rc, stdout, stderr) 반환. 타임아웃은 지정 초."""
+    child_env = dict(os.environ)
+    child_env["PYTHONIOENCODING"] = "utf-8"
+    child_env["PYTHONUTF8"] = "1"
     proc = await asyncio.create_subprocess_exec(
         *cmd,
         cwd=cwd,
+        env=child_env,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
     )
