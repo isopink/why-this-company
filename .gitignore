@@ -1,17 +1,6 @@
-.env
-jobs/
-.cache/
-*.zip
-*.pdf
-reports/
-work/
-|reports/
-*.bak
-upload_payload.json
-run_phase1_test.py
-run_phase1_test_async.py
-.venv/
-__pycache__/
-*.pyc
-__pycache__/
-*.pyc
+# Temp/backup files
+*.bak*
+*.log
+*_stop_start_backend.py
+_tmp_replace.py
+fix_report_card.py
