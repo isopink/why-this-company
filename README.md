@@ -3,7 +3,7 @@
 DART 사업보고서의 숫자로 "왜 이 회사인가"를 스스로 답하게 돕는 웹 서비스입니다.
 Upstage MABC 해커톤 예선 스킬 `why-this-company`를 결선에서 서비스 MVP로 확장했습니다.
 
-- 서비스 주소: @url:`https://why-this-company.onrender.com`
+- 서비스 주소: https://why-this-company.onrender.com
 - LLM: Upstage Solar Pro 4 (`solar-pro4`)만 사용
 
 ## 무엇을 하나
@@ -61,34 +61,62 @@ Upstage MABC 해커톤 예선 스킬 `why-this-company`를 결선에서 서비�
 │   ├── scripts/                 # dart_client, judge, render, verify, company_search
 │   └── .cache/corpCode.zip      # DART 회사코드 목록 (회사 검색용)
 ├── skill-to-service/SKILL.md    # 결선 진행에 사용한 안내 스킬 (서비스 코드와 무관)
-└──
+└── Docs/                        # PRD 등 문서
+```
 
---- Attached Context ---
+`why-this-company/scripts/kipris_client.py`는 예선 스킬의 선택 보강 기능이며, 현재 서비스 파이프라인에서는 호출하지 않습니다.
 
-🌐 @url:`https://why-this-company.onrender.com` (303 tokens)
-01 탐색02 준비03 리포트04 질문05 모아보기
+## 로컬 실행
 
-A REASON THAT IS TRULY YOURS
+Python 3.12 기준입니다 (`.python-version`).
 
-많은 회사 중, 왜 이 회사인가요?
-공시 속 근거에서 나만의 이유를 발견하세요.
+```
+python -m venv .venv
+.venv/Scripts/python -m pip install -r backend/requirements.txt
+.venv/Scripts/python -m uvicorn backend.app:app --host 127.0.0.1 --port 9527
+```
 
-## 지원할 직무를 고르세요
+브라우저에서 http://127.0.0.1:9527 을 엽니다.
+macOS·Linux에서는 `.venv/Scripts/python` 대신 `.venv/bin/python`을 씁니다.
 
-직무를 고르면 연결된 기업을 탐색할 수 있어요
+### 환경변수
 
-## 먼저 리포트를 보여드립니다
+레포 루트의 `.env` 또는 시스템 환경변수로 넣습니다. `.env`는 커밋하지 않습니다.
 
-공시에서 찾은 사실을 정리하는 중입니다.
-리포트를 확인한 뒤, 사실마다 질문에 답하면 지원동기 초안이 됩니다.
+| 이름 | 용도 | 필수 |
+|---|---|---|
+| `OPEN_DART_API_KEY` | DART 사업보고서 조회 | 예 |
+| `UPSTAGE_API_KEY` | Solar Pro 4 호출 | 예 (없으면 판정 결과만 제공) |
+| `KIPRIS_API_KEY` | 특허 보강 (현재 서비스에서 미사용) | 아니오 |
 
-1. 각 사실에는 수치와 원문 위치가 붙어 있습니다.
-2. 답은 브라우저에 자동 저장되며, 완성 후 파일로 내려받을 수 있습니다.
-3. 모범답안은 드리지 않습니다. 고르고 쓰는 건 본인 몫입니다.
-공시 원문을 읽고 수치를 대조하는 중입니다
+## API
 
-REPORT / 공시에서 찾은 것
+| 메서드 | 경로 | 설명 |
+|---|---|---|
+| GET | `/api/health` | 상태 확인 |
+| GET | `/api/companies?q=` | 회사명 검색 |
+| POST | `/api/jobs` | 공시 분석 시작 `{company, job}` |
+| GET | `/api/jobs/{job_id}` | 분석 진행 상태와 결과 |
+| POST | `/api/ir-questions` | IR 쪽별 텍스트로 질문 생성 `{company, job, pages}` |
 
-## 공시에서 이런 점이 눈에 띄었어요
+분석은 회사에 따라 최대 1분 정도 걸립니다.
 
-아래 항목 하나마다 질문이 하나씩 이어집니다.
+## 측정 결과
+
+2026-09-16 배포본 기준, 상장사 200곳을 3건씩 동시에 요청해 측정했습니다.
+
+- 리포트 속 수치 2,666개 중 97.3%가 DART 원문과 일치
+- 평균 소요 27.4초, 중앙값 21.4초 (동시 3건 기준)
+
+## 데이터 출처와 규정
+
+- 공시 데이터: 금융감독원 전자공시시스템 OpenDART (https://opendart.fss.or.kr)
+- IR 자료: 사용자가 직접 올린 파일이며 서버에 저장하지 않습니다.
+- LLM은 Upstage Solar Pro 4만 사용합니다.
+- API 키는 환경변수로만 다루며 소스코드와 배포물에 포함하지 않습니다.
+
+## 알려진 한계
+
+- 분석 작업 상태는 서버 메모리에 저장되므로, 서버가 재시작되면 진행 중인 작업이 사라집니다.
+- 공시 구조가 회사마다 달라 일부 회사는 파싱에 실패할 수 있습니다. 이 경우 원문 링크로 안내합니다.
+- 수치 대조 결과는 기록으로 남기며, 대조에 실패한 수치를 화면에서 자동으로 제거하지는 않습니다.
