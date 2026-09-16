@@ -968,7 +968,7 @@
 
         </div>
 
-        <p class="loader-label" id="loaderLabel">공시 원문을 읽고 수치를 대조하는 중입니다</p>
+        <p class="loader-label" id="loaderLabel">공시 자료를 확인 중입니다</p>
 
       </div>
 
@@ -1038,17 +1038,17 @@
 
 const JOBS = [
 
-  {id:"proc", name:"공정·생산", cos:["삼성전자","SK하이닉스","현대자동차","삼성바이오로직스","LG에너지솔루션","삼성SDI","SK이노베이션","삼양식품","CJ제일제당"]},
+  {id:"proc", name:"공정·생산", cos:["현대자동차", "SK이노베이션", "삼성SDI", "포스코인터내셔널", "금강철강", "에코프로비엠"]},
 
-  {id:"rnd",  name:"R&D",      cos:["삼성전자","SK하이닉스","삼성바이오로직스","LG전자","LG에너지솔루션","셀트리온","삼성SDI","아모레퍼시픽","CJ제일제당"]},
+  {id:"rnd",  name:"R&D",      cos:["LG전자", "삼성SDI", "SK하이닉스", "에코프로비엠", "현대약품", "아모레퍼시픽"]},
 
-  {id:"plan", name:"기획·전략", cos:["현대자동차","LG전자","SK이노베이션","크래프톤","카카오","NAVER","삼성에스디에스","현대글로비스","삼성물산"]},
+  {id:"plan", name:"기획·전략", cos:["현대자동차", "삼성SDI", "삼성물산", "SK", "포스코인터내셔널", "롯데쇼핑"]},
 
-  {id:"dev",  name:"개발\n(SW·데이터)", cos:["삼성전자","SK하이닉스","크래프톤","카카오","NAVER","삼성에스디에스","LG씨엔에스"]},
+  {id:"dev",  name:"개발\n(SW·데이터)", cos:["LG전자", "크래프톤", "포스코DX", "넥슨게임즈"]},
 
-  {id:"sales",name:"영업·마케팅",cos:["현대자동차","LG전자","셀트리온","NAVER","LG씨엔에스","삼양식품","아모레퍼시픽","CJ제일제당","포스코인터내셔널"]},
+  {id:"sales",name:"영업·마케팅",cos:["아모레퍼시픽", "CJ제일제당", "롯데쇼핑", "현대글로비스", "포스코인터내셔널", "금강철강"]},
 
-  {id:"fin",  name:"재무·구매\n(SCM)", cos:["삼성전자","현대자동차","삼성바이오로직스","SK이노베이션","현대글로비스","포스코인터내셔널","삼성물산"]}
+  {id:"fin",  name:"재무·구매\n(SCM)", cos:["SK이노베이션", "삼성SDI", "삼성물산", "현대글로비스", "포스코인터내셔널", "두산건설"]}
 
 ];
 
@@ -1192,7 +1192,7 @@ function updateBar(){
 
 const escapeHTML=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-const codes={'삼성전자':'005930','SK하이닉스':'000660','현대자동차':'005380','삼성바이오로직스':'207940','LG전자':'066570','LG에너지솔루션':'373220','셀트리온':'068270','삼성SDI':'006400','SK이노베이션':'096770','크래프톤':'259960','카카오':'035720','NAVER':'035420','삼성에스디에스':'018260','LG씨엔에스':'064400','삼양식품':'003230','아모레퍼시픽':'090430','CJ제일제당':'097950','현대글로비스':'086280','포스코인터내셔널':'047050','삼성물산':'028260'};
+const codes={'LG전자':'066570','현대자동차':'005380','크래프톤':'259960','SK이노베이션':'096770','삼성SDI':'006400','삼성물산':'028260','아모레퍼시픽':'090430','현대글로비스':'086280','포스코인터내셔널':'047050','CJ제일제당':'097950','금강철강':'053260','SK':'034730','에코프로비엠':'247540','SK하이닉스':'000660','포스코DX':'022100','롯데쇼핑':'023530','두산건설':'011160','현대약품':'004310','넥슨게임즈':'225570'};
 
 let saved={},activeId=null,canStore=true,loadTimer=null,uploadFile=null,docType='ir',toastTimer=null;
 
@@ -1236,7 +1236,7 @@ go('s2u')
 
 }
 
-function runLoad(){if(!picked.job||!picked.co){go('s2');return}$('#pickLine').textContent=picked.co+' · '+picked.job.name.replace('\\n',' ');$('#goQ').disabled=true;$('#goQ').classList.remove('ready');const box=$('#loader'),label=$('#loaderLabel'),names=['공시 원문을 읽고 수치를 대조하는 중입니다'];box.classList.remove('done');const t0=Date.now();const finish=()=>{box.classList.add('done');label.textContent='확인이 끝났습니다';$('#goQ').disabled=false;$('#goQ').classList.add('ready')};if(reduce){finish();return}const poll=()=>{if(!pickedJobId){setTimeout(poll,1000);return}fetch('/api/jobs/'+pickedJobId).then(r=>r.json()).then(j=>{jobResult=j;if(j.status==='done'){afterIR(()=>{const e=Date.now()-t0;if(e<1500){setTimeout(finish,1500-e)}else{finish()}},label)}else if(j.status==='error'){label.textContent=(j.result&&j.result.reason)||'조회 중 오류가 발생했습니다';}else{label.textContent=irNow()?'공시 원문과 IR 자료를 함께 읽는 중입니다':names[0];setTimeout(poll,2000)}})};poll()}
+function runLoad(){if(!picked.job||!picked.co){go('s2');return}$('#pickLine').textContent=picked.co+' · '+picked.job.name.replace('\\n',' ');$('#goQ').disabled=true;$('#goQ').classList.remove('ready');const box=$('#loader'),label=$('#loaderLabel'),names=['공시 자료를 확인 중입니다'];box.classList.remove('done');const t0=Date.now();const finish=()=>{box.classList.add('done');label.textContent='확인이 끝났습니다';$('#goQ').disabled=false;$('#goQ').classList.add('ready')};if(reduce){finish();return}const poll=()=>{if(!pickedJobId){setTimeout(poll,1000);return}fetch('/api/jobs/'+pickedJobId).then(r=>r.json()).then(j=>{jobResult=j;if(j.status==='done'){afterIR(()=>{const e=Date.now()-t0;if(e<1500){setTimeout(finish,1500-e)}else{finish()}},label)}else if(j.status==='error'){label.textContent=(j.result&&j.result.reason)||'조회 중 오류가 발생했습니다';}else{label.textContent=irNow()?'공시 자료와 IR 보고서를 확인 중입니다':names[0];setTimeout(poll,2000)}})};poll()}
 
 function buildReport(){
 
@@ -1297,7 +1297,7 @@ function renderQuestions(){buildSteps();activeId=Date.now().toString(36)+Math.ra
 
 function renderStep(){const st=steps[cur];if(!st)return;$('#qCount').textContent=st.kind==='sum'?'내 답변 모아보기':'질문 '+steps.slice(0,cur+1).filter(s=>s.kind==='q').length+' / '+steps.filter(s=>s.kind==='q').length;stage4.innerHTML=`<div class="step in"><div class="body">${st.kind==='sum'?summaryHTML():stepHTML(st)}</div></div>${criteriaHTML()}${st.kind==='sum'?'<p class="disclaim" style="text-align:center">Designed by S.Lee, N.Kim, D.Kim</p>':String()}`;wire(stage4.firstElementChild,st);updateBar();$('#journey').querySelectorAll('span').forEach((s,i)=>s.classList.toggle('active',i===(st.kind==='sum'?4:3)));window.scrollTo({top:0,behavior:'instant'});storeAnswers()}
 
-function uploadHTML(){return `<p class="tag">OPTIONAL / 더 깊이 이해하기</p><h2 class="qbig title-role upload-heading">회사 자료가 있다면, 함께 살펴볼까요?</h2><p class="why">IR·실적발표 자료를 참고해 생각을 넓혀보세요.<br>IR 보고서는 각 회사 홈페이지의 투자정보(IR) 메뉴에 비정기적으로 올라옵니다.<br>파일은 이 세션에서만 보관합니다.</p><div class="uploadbox" id="dropzone"><p>IR 보고서 PDF를 여기로 끌어 놓거나 파일을 선택하세요. (최대 1개, 20MB)</p>${upload?`<p class="fname"><b>${escapeHTML(upload)}</b> · 선택됨<button data-act="rm">파일 빼기</button></p>`:''}<div class="filerow"><button class="pick-file" data-act="pick">${upload?'파일 바꾸기':'파일 고르기'} ↗</button>${uploadFile?'<button class="skip" data-act="preview">선택한 PDF 열기 ↗</button>':''}</div><input type="file" accept=".pdf,application/pdf" hidden data-act="input"></div><div class="nav"><button class="next" data-act="next">${upload?'IR 자료와 함께 분석하기':'IR 없이 분석하기'}</button><button class="text-button" data-act="backMap">← 회사 다시 선택</button></div>`}
+function uploadHTML(){return `<p class="tag">OPTIONAL / 더 깊이 이해하기</p><h2 class="qbig title-role upload-heading">회사 자료가 있다면, 함께 살펴볼까요?</h2><p class="why">IR·실적발표 자료를 참고해 생각을 넓혀보세요.<br>IR 보고서는 각 회사 홈페이지의 투자정보(IR) 메뉴에 비정기적으로 올라옵니다.<br>선택한 회사의 IR 보고서가 맞는지 확인한 뒤 올려 주세요.<br>파일은 이 세션에서만 보관합니다.</p><div class="uploadbox" id="dropzone"><p>IR 보고서 PDF를 여기로 끌어 놓거나 파일을 선택하세요. (최대 1개, 20MB)</p>${upload?`<p class="fname"><b>${escapeHTML(upload)}</b> · 선택됨<button data-act="rm">파일 빼기</button></p>`:''}<div class="filerow"><button class="pick-file" data-act="pick">${upload?'파일 바꾸기':'파일 고르기'} ↗</button>${uploadFile?'<button class="skip" data-act="preview">선택한 PDF 열기 ↗</button>':''}</div><input type="file" accept=".pdf,application/pdf" hidden data-act="input"></div><div class="nav"><button class="next" data-act="next">${upload?'IR 자료와 함께 분석하기':'IR 없이 분석하기'}</button><button class="text-button" data-act="backMap">← 회사 다시 선택</button></div>`}
 
 function renderUpload(){$('#pickLineU').textContent=picked.co+' · '+picked.job.name.replace('\n',' ');const st=$('#uploadStage');st.innerHTML=`<div class="step in"><div class="body">${uploadHTML()}</div></div>`;wire(st.firstElementChild,{kind:'upload'});const h=st.querySelector('h2');if(h){h.tabIndex=-1;h.focus({preventScroll:true})}}
 
@@ -1326,7 +1326,7 @@ function shapeSteps(){const MINQ=3,MAXQ=7;const j=picked.job.name.split(String.f
 const groups=[];const gi={};for(const s of all){if(isIR(s)||isCom(s)||s.id==='doc'||s.id==='none')continue;const base=String(s.id).split('_b')[0];if(!(base in gi)){gi[base]=groups.length;groups.push([])}groups[gi[base]].push(s)}const per=groups.length>=3?1:2;let disPool=[];for(let r=0;r<per;r++)for(const g of groups)if(g[r])disPool.push(fixQ(g[r]));if(!groups.length&&!irQ.length)disPool=none;
 const irPool=irQ.length?irQ:doc;const room=MAXQ-c0.length;const pd=[],pi=[];let a=0,b=0,turn=0;while(pd.length+pi.length<room&&(a<disPool.length||b<irPool.length)){if((turn%2===0&&a<disPool.length)||b>=irPool.length)pd.push(disPool[a++]);else pi.push(irPool[b++]);turn++}pd.sort((x,y)=>all.findIndex(s=>s.id===x.id)-all.findIndex(s=>s.id===y.id));let body=pd.concat(pi);if(body.length<room)body=body.concat(c1);const fill=[{kind:'q',id:'c2',tag:'나의 선택',q:'원하는 직무가 아닌 곳에 배정되면 어떻게 하겠어요?',follow:'그 경우에도 '+picked.co+'에 다니고 싶은 이유는 무엇인가요?'},{kind:'q',id:'c3',tag:'나의 선택',q:'여러 직무 중 '+j+' 직무를 고른 이유는 무엇인가요?',follow:'비슷한 다른 직무와 비교하면 무엇이 다르다고 보나요?'}];for(const f of fill){if(body.length+c0.length>=MINQ)break;body.push(f)}steps=body.slice(0,room).concat(c0,tail)}
 
-function afterIR(cb,label){const t=Date.now();const tick=()=>{const s=irNow();if(!s||s.status!=='loading'||Date.now()-t>150000){cb();return}if(label)label.textContent='공시 원문과 IR 자료를 함께 읽는 중입니다';setTimeout(tick,1000)};tick()}
+function afterIR(cb,label){const t=Date.now();const tick=()=>{const s=irNow();if(!s||s.status!=='loading'||Date.now()-t>150000){cb();return}if(label)label.textContent='공시 자료와 IR 보고서를 확인 중입니다';setTimeout(tick,1000)};tick()}
 function irTidy(v){return String(v==null?String():v).split(' ').filter(Boolean).join(' ').split(' .').join('.').split(' ,').join(',').split(' )').join(')').split('( ').join('(')}
 const CRITERIA=[['쏠림','부문·지역 상위 1~2개 비중 합이 70% 이상','공정거래법 시장지배적 사업자 추정 기준 참조'],['급한 변화','부문·지역 비중이 전년 대비 10%p 이상 변동','절대 임계값'],['소수 거래처 의존','주요 매입처가 소수로 명시됨 (원문이 다수라고 쓰면 해당 없음)','K-IFRS 1108호 주요고객 공시 취지'],['성장 정체','매출 2년 연속 감소','자사 과거 대비 추이'],['투자 확대','R&D 비중이 전년 대비 상승하거나 시설투자 정황이 있음','연구개발 비중·시설투자 언급'],['수익성 악화','영업이익이 전년 대비 10% 이상 감소','자사 과거 대비 추이']];
 function criteriaHTML(){const cell='<td style="padding:8px 10px;border-top:1px solid #20202020;vertical-align:top">';const hd='<th style="text-align:left;padding:8px 10px;white-space:nowrap">';return '<details class="report-none" style="margin-top:24px;border:1px solid #20202020"><summary style="cursor:pointer;font-weight:700">공시 판정 기준 보기</summary><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;margin-top:12px;font-size:14px;line-height:1.6">'+'<tr>'+hd+'유형</th>'+hd+'조건</th>'+hd+'참고 기준</th></tr>'+CRITERIA.map(r=>'<tr>'+r.map(c=>cell+escapeHTML(c)+'</td>').join(String())+'</tr>').join(String())+'</table></div></details>'}
@@ -1366,7 +1366,7 @@ const dots=[],phrase='whythiscompany';let letter=0;for(let lat=-1.48;lat<1.5;lat
 
 const nodes=[];JOBS.forEach((j,i)=>{const lat=[0.35,-0.35,0.35,-0.35,0.35,-0.35][i],lon=[-2.618,-1.571,1.571,0.524,-0.524,2.618][i];nodes.push({kind:'job',id:j.id,label:j.name.replace('\n',' '),lat,lon,base:21})});
 
-const CO_POS={'삼성전자':[-1.0,-2.848],'SK하이닉스':[-1.0,-1.426],'현대자동차':[0.986,2.61],'삼성바이오로직스':[-0.31,-2.873],'LG전자':[0.944,-0.397],'LG에너지솔루션':[-0.358,-2.258],'셀트리온':[-0.494,-0.76],'삼성SDI':[0.179,-2.037],'SK이노베이션':[0.355,2.815],'크래프톤':[0.739,0.978],'카카오':[0.138,0.93],'NAVER':[0.385,0.331],'삼성에스디에스':[-0.287,1.269],'LG씨엔에스':[-0.243,-0.11],'삼양식품':[1.0,-1.792],'아모레퍼시픽':[0.022,-1.037],'CJ제일제당':[0.452,-1.491],'현대글로비스':[-0.388,1.972],'포스코인터내셔널':[-0.841,1.197],'삼성물산':[0.211,2.202]};CO.forEach((c,i)=>{const P=CO_POS[c.name]||[Math.asin(1-2*(i+.5)/CO.length),i*2.399963+1.05],lat=P[0],lon=P[1];nodes.push({kind:'co',id:c.name,label:c.name,jobs:c.jobs,lat,lon,base:9+c.jobs.length*1.35})});
+const CO_POS={'SK하이닉스':[-1.0,-1.426],'현대자동차':[0.986,2.61],'LG전자':[0.944,-0.397],'삼성SDI':[0.179,-2.037],'SK이노베이션':[0.355,2.815],'크래프톤':[0.739,0.978],'아모레퍼시픽':[0.022,-1.037],'CJ제일제당':[0.452,-1.491],'현대글로비스':[-0.388,1.972],'포스코인터내셔널':[-0.841,1.197],'삼성물산':[0.211,2.202],'금강철강':[-1.0,-2.848],'SK':[0.138,0.93],'에코프로비엠':[-0.358,-2.258],'포스코DX':[-0.287,1.269],'롯데쇼핑':[1.0,-1.792],'두산건설':[-0.494,-0.76],'현대약품':[-0.31,-2.873],'넥슨게임즈':[0.385,0.331]};CO.forEach((c,i)=>{const P=CO_POS[c.name]||[Math.asin(1-2*(i+.5)/CO.length),i*2.399963+1.05],lat=P[0],lon=P[1];nodes.push({kind:'co',id:c.name,label:c.name,jobs:c.jobs,lat,lon,base:9+c.jobs.length*1.35})});
 
 nodes.forEach(n=>{n.x=Math.cos(n.lat)*Math.sin(n.lon);n.y=Math.sin(n.lat);n.z=Math.cos(n.lat)*Math.cos(n.lon);const b=document.createElement('button');b.className='globe-node '+n.kind;b.type='button';b.dataset.globeNode=n.id;b.innerHTML='<span class="globe-node-dot"></span><span class="globe-node-label"></span>';b.querySelector('.globe-node-label').textContent=n.label;b.setAttribute('aria-label',(n.kind==='job'?'직무 선택: ':'회사 선택: ')+n.label);root.appendChild(b);n.el=b;b.onclick=e=>{e.stopPropagation();if(moved||target?.cb||target?.hold)return;if(n.kind==='job'){focusNode(n);pickJob(JOBS.find(j=>j.id===n.id))}else if(sel&&n.jobs.includes(sel)){focusNode(n,()=>pickCo(n.id))}else if(!sel){focusNode(n);pickJob(JOBS.find(j=>j.id===n.jobs[0]))}draw()};b.onfocus=()=>{focus=true};b.onblur=()=>{focus=false}});
 
