@@ -148,14 +148,14 @@ def _extract_questions(sections: dict[str, str]) -> list[dict]:
     questions: list[dict] = []
     current_title: str | None = None
     current_q: list[str] = []
-    skip_until_title: bool = False
+    skip_until_title: bool = False; lines = [x for x in lines if x.strip() and not x.strip().startswith("이 사항을")]
     title_re = re.compile(r"^주목\s+\d+\.")
     for line in lines:
         stripped = line.lstrip()
         if title_re.match(stripped):
             if current_title is not None and current_q:
                 questions.append(_finalize_question(current_title, current_q))
-            current_title = stripped
+            current_title = stripped; skip_until_title = False
             current_q = []
         elif stripped.startswith("- ") or stripped.startswith("  - "):
             if not skip_until_title:

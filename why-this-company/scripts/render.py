@@ -230,8 +230,8 @@ def build(dart, judge, kipris, job, angles, fname):
         if not a3.strip():
             sys.exit("render 중단: work/angles.txt 에 '## 3단계' 절이 없거나 비어 있습니다. "
                      "'## 2단계' 아래 1~2문장, '## 3단계' 아래 문제별 방향성을 쓰고 다시 실행하세요.")
-        if len(a2.splitlines()) > 4 or len(a2) > 260:
-            sys.exit("render 중단: '## 2단계'가 너무 깁니다(문제당 한 줄, 전체 260자 이내). 방향성은 '## 3단계'로.")
+        if len(a2.splitlines()) > max(4, len(probs)) or len(a2) > 130 * max(3, len(probs)):
+            sys.exit("render 중단: '## 2단계'가 너무 깁니다(문제당 한 줄, 한 줄 90자 이내). 방향성은 '## 3단계'로.")
         long_bullets = [b for b in a3.splitlines() if b.strip().startswith("-") and len(b.strip()) > 140]
         if long_bullets:
             sys.exit("render 중단: 3단계 방향성 항목이 너무 깁니다(항목당 140자 이내, 매핑 테이블 골격 + 회사 숫자 한 구절). "
