@@ -868,7 +868,7 @@
 
 #s3 .loader-label{margin:0;font-size:15px;color:#575656;min-height:1.6em;transition:color .3s}
 
-#s3 .loader.done .loader-label{color:#202020;font-weight:600}
+#s3 .loader.done .loader-label{color:#202020;font-weight:600} #s3 .loader-note{margin:6px 0 0;font-size:13px;color:#8a8a8a} #s3 .loader.done .loader-note{display:none}
 
 #s3 #goQ.ready{animation:goReady .5s ease-out}
 
@@ -968,7 +968,7 @@
 
         </div>
 
-        <p class="loader-label" id="loaderLabel">공시 자료를 확인 중입니다</p>
+        <p class="loader-label" id="loaderLabel">공시 자료를 확인 중입니다</p><p class="loader-note">분석에 최대 1분 정도 걸릴 수 있습니다.</p>
 
       </div>
 
@@ -1038,17 +1038,17 @@
 
 const JOBS = [
 
-  {id:"proc", name:"공정·생산", cos:["현대자동차", "SK이노베이션", "삼성SDI", "포스코인터내셔널", "금강철강", "에코프로비엠"]},
+  {id:"proc", name:"공정·생산", cos:["현대자동차", "SK이노베이션", "삼성SDI", "포스코인터내셔널", "에코프로비엠", "GST"]},
 
-  {id:"rnd",  name:"R&D",      cos:["LG전자", "삼성SDI", "SK하이닉스", "에코프로비엠", "현대약품", "아모레퍼시픽"]},
+  {id:"rnd",  name:"R&D",      cos:["삼성SDI", "SK하이닉스", "에코프로비엠", "아모레퍼시픽", "GST"]},
 
-  {id:"plan", name:"기획·전략", cos:["현대자동차", "삼성SDI", "삼성물산", "SK", "포스코인터내셔널", "롯데쇼핑"]},
+  {id:"plan", name:"기획·전략", cos:["현대자동차", "삼성SDI", "삼성물산", "SK텔레콤", "포스코인터내셔널", "롯데쇼핑", "한미글로벌"]},
 
-  {id:"dev",  name:"개발\n(SW·데이터)", cos:["LG전자", "크래프톤", "포스코DX", "넥슨게임즈"]},
+  {id:"dev",  name:"개발\n(SW·데이터)", cos:["크래프톤", "포스코DX", "넥슨게임즈", "SK텔레콤", "넷마블"]},
 
-  {id:"sales",name:"영업·마케팅",cos:["아모레퍼시픽", "CJ제일제당", "롯데쇼핑", "현대글로비스", "포스코인터내셔널", "금강철강"]},
+  {id:"sales",name:"영업·마케팅",cos:["아모레퍼시픽", "CJ제일제당", "롯데쇼핑", "현대글로비스", "포스코인터내셔널", "SK텔레콤", "넷마블"]},
 
-  {id:"fin",  name:"재무·구매\n(SCM)", cos:["SK이노베이션", "삼성SDI", "삼성물산", "현대글로비스", "포스코인터내셔널", "두산건설"]}
+  {id:"fin",  name:"재무·구매\n(SCM)", cos:["SK이노베이션", "삼성SDI", "삼성물산", "현대글로비스", "포스코인터내셔널", "한미글로벌"]}
 
 ];
 
@@ -1192,7 +1192,7 @@ function updateBar(){
 
 const escapeHTML=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-const codes={'LG전자':'066570','현대자동차':'005380','크래프톤':'259960','SK이노베이션':'096770','삼성SDI':'006400','삼성물산':'028260','아모레퍼시픽':'090430','현대글로비스':'086280','포스코인터내셔널':'047050','CJ제일제당':'097950','금강철강':'053260','SK':'034730','에코프로비엠':'247540','SK하이닉스':'000660','포스코DX':'022100','롯데쇼핑':'023530','두산건설':'011160','현대약품':'004310','넥슨게임즈':'225570'};
+const codes={'현대자동차':'005380','크래프톤':'259960','SK이노베이션':'096770','삼성물산':'028260','CJ제일제당':'097950','SK텔레콤':'017670','에코프로비엠':'247540','SK하이닉스':'000660','포스코DX':'022100','롯데쇼핑':'023530','삼성SDI':'006400','포스코인터내셔널':'047050','현대글로비스':'086280','넥슨게임즈':'225570','아모레퍼시픽':'090430','한미글로벌':'053690','넷마블':'251270','GST':'083450'};const codes_old={'LG전자':'066570','현대자동차':'005380','크래프톤':'259960','SK이노베이션':'096770','삼성SDI':'006400','삼성물산':'028260','아모레퍼시픽':'090430','현대글로비스':'086280','포스코인터내셔널':'047050','CJ제일제당':'097950','금강철강':'053260','SK':'034730','에코프로비엠':'247540','SK하이닉스':'000660','포스코DX':'022100','롯데쇼핑':'023530','두산건설':'011160','현대약품':'004310','넥슨게임즈':'225570'};
 
 let saved={},activeId=null,canStore=true,loadTimer=null,uploadFile=null,docType='ir',toastTimer=null;
 
@@ -1366,7 +1366,7 @@ const dots=[],phrase='whythiscompany';let letter=0;for(let lat=-1.48;lat<1.5;lat
 
 const nodes=[];JOBS.forEach((j,i)=>{const lat=[0.35,-0.35,0.35,-0.35,0.35,-0.35][i],lon=[-2.618,-1.571,1.571,0.524,-0.524,2.618][i];nodes.push({kind:'job',id:j.id,label:j.name.replace('\n',' '),lat,lon,base:21})});
 
-const CO_POS={'SK하이닉스':[-1.0,-1.426],'현대자동차':[0.986,2.61],'LG전자':[0.944,-0.397],'삼성SDI':[0.179,-2.037],'SK이노베이션':[0.355,2.815],'크래프톤':[0.739,0.978],'아모레퍼시픽':[0.022,-1.037],'CJ제일제당':[0.452,-1.491],'현대글로비스':[-0.388,1.972],'포스코인터내셔널':[-0.841,1.197],'삼성물산':[0.211,2.202],'금강철강':[-1.0,-2.848],'SK':[0.138,0.93],'에코프로비엠':[-0.358,-2.258],'포스코DX':[-0.287,1.269],'롯데쇼핑':[1.0,-1.792],'두산건설':[-0.494,-0.76],'현대약품':[-0.31,-2.873],'넥슨게임즈':[0.385,0.331]};CO.forEach((c,i)=>{const P=CO_POS[c.name]||[Math.asin(1-2*(i+.5)/CO.length),i*2.399963+1.05],lat=P[0],lon=P[1];nodes.push({kind:'co',id:c.name,label:c.name,jobs:c.jobs,lat,lon,base:9+c.jobs.length*1.35})});
+const CO_POS={'현대자동차':[0.81,2.309],'SK이노베이션':[0.187,3.017],'삼성SDI':[-0.414,-2.981],'포스코인터내셔널':[1.0,3.045],'에코프로비엠':[0.639,-1.925],'GST':[-0.11,-2.194],'SK하이닉스':[0.216,-1.492],'아모레퍼시픽':[-0.108,-0.998],'삼성물산':[0.127,2.173],'SK텔레콤':[0.407,0.7],'롯데쇼핑':[1.0,0.413],'한미글로벌':[-0.438,1.902],'크래프톤':[-0.869,-0.008],'포스코DX':[-0.349,1.099],'넥슨게임즈':[-1.0,0.952],'넷마블':[0.169,0.091],'CJ제일제당':[-0.234,-0.445],'현대글로비스':[-0.74,-2.233]};const CO_POS_OLD={'SK하이닉스':[-1.0,-1.426],'현대자동차':[0.986,2.61],'LG전자':[0.944,-0.397],'삼성SDI':[0.179,-2.037],'SK이노베이션':[0.355,2.815],'크래프톤':[0.739,0.978],'아모레퍼시픽':[0.022,-1.037],'CJ제일제당':[0.452,-1.491],'현대글로비스':[-0.388,1.972],'포스코인터내셔널':[-0.841,1.197],'삼성물산':[0.211,2.202],'금강철강':[-1.0,-2.848],'SK':[0.138,0.93],'에코프로비엠':[-0.358,-2.258],'포스코DX':[-0.287,1.269],'롯데쇼핑':[1.0,-1.792],'두산건설':[-0.494,-0.76],'현대약품':[-0.31,-2.873],'넥슨게임즈':[0.385,0.331]};CO.forEach((c,i)=>{const P=CO_POS[c.name]||[Math.asin(1-2*(i+.5)/CO.length),i*2.399963+1.05],lat=P[0],lon=P[1];nodes.push({kind:'co',id:c.name,label:c.name,jobs:c.jobs,lat,lon,base:9+c.jobs.length*1.35})});
 
 nodes.forEach(n=>{n.x=Math.cos(n.lat)*Math.sin(n.lon);n.y=Math.sin(n.lat);n.z=Math.cos(n.lat)*Math.cos(n.lon);const b=document.createElement('button');b.className='globe-node '+n.kind;b.type='button';b.dataset.globeNode=n.id;b.innerHTML='<span class="globe-node-dot"></span><span class="globe-node-label"></span>';b.querySelector('.globe-node-label').textContent=n.label;b.setAttribute('aria-label',(n.kind==='job'?'직무 선택: ':'회사 선택: ')+n.label);root.appendChild(b);n.el=b;b.onclick=e=>{e.stopPropagation();if(moved||target?.cb||target?.hold)return;if(n.kind==='job'){focusNode(n);pickJob(JOBS.find(j=>j.id===n.id))}else if(sel&&n.jobs.includes(sel)){focusNode(n,()=>pickCo(n.id))}else if(!sel){focusNode(n);pickJob(JOBS.find(j=>j.id===n.jobs[0]))}draw()};b.onfocus=()=>{focus=true};b.onblur=()=>{focus=false}});
 
