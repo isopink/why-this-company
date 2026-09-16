@@ -158,10 +158,10 @@ def _locate(quote: str, page: int, norm_pages: list) -> int:
     q = _squash(quote)
     if len(q) < 6:
         return 0
-    if 1 <= page <= len(norm_pages) and q in norm_pages[page - 1]:
+    if 1 <= page <= len(norm_pages) and (q in norm_pages[page - 1] or (len(q) >= 15 and (q[:15] in norm_pages[page - 1] or q[-15:] in norm_pages[page - 1]))):
         return page
     for i, t in enumerate(norm_pages):
-        if q in t:
+        if q in t or (len(q) >= 15 and (q[:15] in t or q[-15:] in t)):
             return i + 1
     return 0
 
@@ -218,7 +218,7 @@ def _clean_questions(items: list, family: str, norm_pages: list) -> list:
             continue
         if NUM_UNIT.search(q) or any(w in q for w in FIRST_PERSON):
             continue
-        if topic not in MAPPING or _squash(it.get("job")) != _squash(family):
+        if topic not in MAPPING:
             continue
         cat = str(it.get("category") or "").strip()
         if cat not in CATEGORIES:
